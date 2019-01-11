@@ -1,0 +1,37 @@
+<textarea id="input">
+
+</textarea>
+<pre><code id="output"></code></pre>
+
+<script src="/dist/require.min.js"></script>
+<script src="/dist/bundle.js"></script>
+
+<script>
+    requirejs.config({
+        map: {
+            '*': {
+                'eventemitter3': 'dist/eventemitter3.min.js'
+            }
+        }
+    });
+    require([
+        'Lexer/index',
+        'Parser/index',
+        'Generator/index',
+    ], function(Lexer, Parser, Generator) {
+        const $ = document.querySelector.bind(document);
+
+        $('#input').oninput = e => {
+            const text = $('#input').value;
+            try {
+                const tokens = Lexer.lex(text);
+                const ast = Parser.parse(tokens);
+                const asm = Generator.generate(ast);
+                console.log(asm);
+                $('#ouput').innerText = asm;
+            } catch (e) {
+                $('#output').innerText = e.details;
+            }
+        }
+    });
+</script>
