@@ -1,66 +1,70 @@
-<head>
-    <style>
-        body {
-            display: flex;
-        }
-
-        body > * {
-            flex-grow: 1;
-        }
-
-        #input, #output {
-            height: 50vh;
-        }
-
-        #output {
-            padding: 10px;
-        }
-    </style>
-</head>
-
-<textarea id="input">
-int main() {
-    return 2 + 2 * 2;
-}
-</textarea>
-<pre><code id="output"></code></pre>
-
-<script src="/dist/require.min.js"></script>
-<script src="/dist/bundle.js"></script>
-
-<script>
-    requirejs.config({
-        map: {
-            '*': {
-                'eventemitter3': 'dist/eventemitter3.min.js'
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                display: flex;
             }
-        }
-    });
-    require([
-        'Lexer/index',
-        'Parser/index',
-        'Generator/index',
-    ], function(Lexer, Parser, Generator) {
-        const $ = document.querySelector.bind(document);
-        const compile = (input) => {
-            try {
-                const tokens = Lexer.lex(input);
-                const ast = Parser.parse(tokens);
-                const asm = Generator.generate(ast);
-                return asm;
-            } catch (e) {
-                return e.message + '\n' + e.details;
+
+            body > * {
+                flex-grow: 1;
             }
+
+            #input, #output {
+                height: 50vh;
+            }
+
+            #output {
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="input">
+        int main() {
+            return 2 + 2 * 2;
         }
+        </textarea>
+        <pre><code id="output"></code></pre>
 
-        $('#input').oninput = e => {
-            $('#output').innerHTML = compile(e.target.value);
-        };
+        <script src="/dist/require.min.js"></script>
+        <script src="/dist/bundle.js"></script>
 
-        $('#output').innerHTML = compile(`
-int main() {
-    return 2 + 2 * 2;
-}
-`);
-    });
-</script>
+        <script>
+            requirejs.config({
+                map: {
+                    '*': {
+                        'eventemitter3': 'dist/eventemitter3.min.js'
+                    }
+                }
+            });
+            require([
+                'Lexer/index',
+                'Parser/index',
+                'Generator/index',
+            ], function(Lexer, Parser, Generator) {
+                const $ = document.querySelector.bind(document);
+                const compile = (input) => {
+                    try {
+                        const tokens = Lexer.lex(input);
+                        const ast = Parser.parse(tokens);
+                        const asm = Generator.generate(ast);
+                        return asm;
+                    } catch (e) {
+                        return e.message + '\n' + e.details;
+                    }
+                }
+
+                $('#input').oninput = e => {
+                    $('#output').innerHTML = compile(e.target.value);
+                };
+
+                $('#output').innerHTML = compile(`
+        int main() {
+            return 2 + 2 * 2;
+        }
+        `);
+            });
+        </script>
+    </body>
+</html>
