@@ -401,11 +401,11 @@ define("AST/IConstant", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("AST/Constant", ["require", "exports", "AST/Node"], function (require, exports, Node_2) {
+define("AST/Constant", ["require", "exports", "AST/Expression"], function (require, exports, Expression_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Node_2 = __importDefault(Node_2);
-    class Constant extends Node_2.default {
+    Expression_2 = __importDefault(Expression_2);
+    class Constant extends Expression_2.default {
         constructor(type, value, info = {}) {
             super(info);
             this.type = type;
@@ -417,11 +417,11 @@ define("AST/Constant", ["require", "exports", "AST/Node"], function (require, ex
     }
     exports.default = Constant;
 });
-define("AST/Statement", ["require", "exports", "AST/Node"], function (require, exports, Node_3) {
+define("AST/Statement", ["require", "exports", "AST/Node"], function (require, exports, Node_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Node_3 = __importDefault(Node_3);
-    class Statement extends Node_3.default {
+    Node_2 = __importDefault(Node_2);
+    class Statement extends Node_2.default {
         constructor(info = {}) {
             super(info);
         }
@@ -431,11 +431,11 @@ define("AST/Statement", ["require", "exports", "AST/Node"], function (require, e
     }
     exports.default = Statement;
 });
-define("AST/FunctionDeclaration", ["require", "exports", "AST/Node"], function (require, exports, Node_4) {
+define("AST/FunctionDeclaration", ["require", "exports", "AST/Node"], function (require, exports, Node_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Node_4 = __importDefault(Node_4);
-    class FunctionDeclaration extends Node_4.default {
+    Node_3 = __importDefault(Node_3);
+    class FunctionDeclaration extends Node_3.default {
         constructor(type, name, statement, info = {}) {
             super(info);
             this.type = type;
@@ -463,11 +463,11 @@ define("AST/IntegerConstant", ["require", "exports", "AST/Constant"], function (
     }
     exports.default = IntegerConstant;
 });
-define("AST/Program", ["require", "exports", "AST/Node"], function (require, exports, Node_5) {
+define("AST/Program", ["require", "exports", "AST/Node"], function (require, exports, Node_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Node_5 = __importDefault(Node_5);
-    class Program extends Node_5.default {
+    Node_4 = __importDefault(Node_4);
+    class Program extends Node_4.default {
         constructor(declaration, info = {}) {
             super(info);
             this.declaration = declaration;
@@ -495,11 +495,11 @@ define("AST/ReturnStatement", ["require", "exports", "AST/Statement"], function 
     }
     exports.default = ReturnStatement;
 });
-define("AST/UnaryOp", ["require", "exports", "AST/Expression"], function (require, exports, Expression_2) {
+define("AST/UnaryOp", ["require", "exports", "AST/Expression"], function (require, exports, Expression_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Expression_2 = __importDefault(Expression_2);
-    class UnaryOp extends Expression_2.default {
+    Expression_3 = __importDefault(Expression_3);
+    class UnaryOp extends Expression_3.default {
         constructor(operator, expression, info = {}) {
             super(info);
             this.operator = operator;
@@ -512,15 +512,15 @@ define("AST/UnaryOp", ["require", "exports", "AST/Expression"], function (requir
     }
     exports.default = UnaryOp;
 });
-define("AST/index", ["require", "exports", "AST/BinaryOp", "AST/Constant", "AST/IntegerConstant", "AST/Expression", "AST/FunctionDeclaration", "AST/Node", "AST/Program", "AST/ReturnStatement", "AST/UnaryOp", "AST/Statement"], function (require, exports, BinaryOp_1, Constant_2, IntegerConstant_1, Expression_3, FunctionDeclaration_1, Node_6, Program_1, ReturnStatement_1, UnaryOp_1, Statement_2) {
+define("AST/index", ["require", "exports", "AST/BinaryOp", "AST/Constant", "AST/IntegerConstant", "AST/Expression", "AST/FunctionDeclaration", "AST/Node", "AST/Program", "AST/ReturnStatement", "AST/UnaryOp", "AST/Statement"], function (require, exports, BinaryOp_1, Constant_2, IntegerConstant_1, Expression_4, FunctionDeclaration_1, Node_5, Program_1, ReturnStatement_1, UnaryOp_1, Statement_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     BinaryOp_1 = __importDefault(BinaryOp_1);
     Constant_2 = __importDefault(Constant_2);
     IntegerConstant_1 = __importDefault(IntegerConstant_1);
-    Expression_3 = __importDefault(Expression_3);
+    Expression_4 = __importDefault(Expression_4);
     FunctionDeclaration_1 = __importDefault(FunctionDeclaration_1);
-    Node_6 = __importDefault(Node_6);
+    Node_5 = __importDefault(Node_5);
     Program_1 = __importDefault(Program_1);
     ReturnStatement_1 = __importDefault(ReturnStatement_1);
     UnaryOp_1 = __importDefault(UnaryOp_1);
@@ -528,9 +528,9 @@ define("AST/index", ["require", "exports", "AST/BinaryOp", "AST/Constant", "AST/
     exports.BinaryOp = BinaryOp_1.default;
     exports.Constant = Constant_2.default;
     exports.IntegerConstant = IntegerConstant_1.default;
-    exports.Expression = Expression_3.default;
+    exports.Expression = Expression_4.default;
     exports.FunctionDeclaration = FunctionDeclaration_1.default;
-    exports.Node = Node_6.default;
+    exports.Node = Node_5.default;
     exports.Program = Program_1.default;
     exports.ReturnStatement = ReturnStatement_1.default;
     exports.UnaryOp = UnaryOp_1.default;
@@ -578,9 +578,9 @@ ${node.name}:
 `;
         }
         visitBinaryOp(node) {
-            let asm = this.visit(node.left);
+            let asm = this.visit(node.right);
             asm += '  PUSH A\n';
-            asm += this.visit(node.right);
+            asm += this.visit(node.left);
             asm += '  POP B\n';
             switch (node.operator) {
                 case '*':
@@ -588,7 +588,7 @@ ${node.name}:
                     break;
                 case '/':
                     // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
-                    asm += '  MOV Y, 0';
+                    asm += '  MOV Y, 0\n';
                     asm += '  DIV B';
                     break;
                 case '+':
@@ -770,7 +770,7 @@ define("Parser/parseFactor", ["require", "exports", "AST/index", "Token/index", 
             stream.next();
             const expression = parseExpression_1.default(stream);
             stream.expect(Token_5.TokenType.RIGHT_PAREN);
-            return new AST_1.Expression(expression);
+            return expression;
         }
         else if (peek.type & Token_5.TokenType.UNARY_OP) {
             const unaryOp = stream.next();

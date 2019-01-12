@@ -240,9 +240,9 @@ declare module "AST/IConstant" {
 declare module "AST/Constant" {
     import { IToken } from "Token/index";
     import { TokenStream } from "TokenStream/index";
-    import Node from "AST/Node";
+    import Expression from "AST/Expression";
     import IConstant from "AST/IConstant";
-    export default class Constant<T = any> extends Node implements IConstant<T> {
+    export default class Constant<T = any> extends Expression implements IConstant<T> {
         type: string;
         readonly value: T;
         constructor(type: string, value: T, info?: Partial<{
