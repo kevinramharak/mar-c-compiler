@@ -760,15 +760,14 @@ define("Lexer/index", ["require", "exports", "Lexer/is", "Lexer/keywords", "Lexe
     exports.keywords = keywords_2.default;
     exports.lex = lex_1.default;
 });
-define("Parser/parseFactor", ["require", "exports", "AST/index", "Token/index", "Parser/parseExpression"], function (require, exports, AST_1, Token_5, parseExpression_1) {
+define("Parser/parseFactor", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_1, Token_5, _1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    parseExpression_1 = __importDefault(parseExpression_1);
     function parseFactor(stream) {
         const peek = stream.peek();
         if (peek.type === Token_5.TokenType.LEFT_PAREN) {
             stream.next();
-            const expression = parseExpression_1.default(stream);
+            const expression = _1.parseExpression(stream);
             stream.expect(Token_5.TokenType.RIGHT_PAREN);
             return expression;
         }
@@ -817,16 +816,16 @@ define("Parser/parseExpression", ["require", "exports", "AST/index", "Token/inde
     exports.default = parseExpression;
     ;
 });
-define("Parser/parseStatement", ["require", "exports", "AST/index", "Token/index", "Parser/parseExpression"], function (require, exports, AST_4, Token_8, parseExpression_2) {
+define("Parser/parseStatement", ["require", "exports", "AST/index", "Token/index", "Parser/parseExpression"], function (require, exports, AST_4, Token_8, parseExpression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    parseExpression_2 = __importDefault(parseExpression_2);
+    parseExpression_1 = __importDefault(parseExpression_1);
     function parseStatement(stream) {
         const keyword = stream.expect(Token_8.TokenType.KEYWORD);
         if (keyword.lexeme !== 'return') {
             stream.panic(keyword, 'return');
         }
-        const expression = parseExpression_2.default(stream);
+        const expression = parseExpression_1.default(stream);
         stream.expect(Token_8.TokenType.SEMI_COLON);
         return new AST_4.ReturnStatement(expression);
     }
@@ -871,10 +870,22 @@ define("Parser/parse", ["require", "exports", "TokenStream/index", "Parser/parse
     }
     exports.default = parse;
 });
-define("Parser/index", ["require", "exports", "Parser/parse"], function (require, exports, parse_1) {
+define("Parser/index", ["require", "exports", "Parser/parse", "Parser/parseExpression", "Parser/parseFactor", "Parser/parseFunctionDeclaration", "Parser/parseProgram", "Parser/parseStatement", "Parser/parseTerm"], function (require, exports, parse_1, parseExpression_2, parseFactor_2, parseFunctionDeclaration_2, parseProgram_2, parseStatement_2, parseTerm_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parse_1 = __importDefault(parse_1);
+    parseExpression_2 = __importDefault(parseExpression_2);
+    parseFactor_2 = __importDefault(parseFactor_2);
+    parseFunctionDeclaration_2 = __importDefault(parseFunctionDeclaration_2);
+    parseProgram_2 = __importDefault(parseProgram_2);
+    parseStatement_2 = __importDefault(parseStatement_2);
+    parseTerm_2 = __importDefault(parseTerm_2);
     exports.parse = parse_1.default;
+    exports.parseExpression = parseExpression_2.default;
+    exports.parseFactor = parseFactor_2.default;
+    exports.parseFunctionDeclaration = parseFunctionDeclaration_2.default;
+    exports.parseProgram = parseProgram_2.default;
+    exports.parseStatement = parseStatement_2.default;
+    exports.parseTerm = parseTerm_2.default;
 });
 //# sourceMappingURL=bundle.js.map

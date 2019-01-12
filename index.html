@@ -2,29 +2,85 @@
 <html>
     <head>
         <style>
-            body {
+            :root {
+                background-color: #FAFAFA;
+                color: #303030;
+            }
+
+            section {
                 display: flex;
             }
 
-            body > * {
-                flex-grow: 1;
+            header {
+                width: 100%;
+                min-height: 20vh;
             }
 
-            #input, #output {
-                height: 50vh;
+            h1, h2 {
+                margin-top: 2px;
+                margin-bottom: 4px;
+                margin-left: 10px;
+            }
+            
+            h1 > small {
+                font-size: 0.6em;
+                font-weight: normal;
             }
 
-            #output {
-                padding: 10px;
+            p {
+                margin: 10px;
+            }
+
+            pre {
+                margin: 10px;
+                padding: 5px;
+            }
+
+            #input, #output-wrapper {
+                display: block;
+                min-height: 50vh;
+                width: 50%;
+                margin: 10px;
+            }
+
+            pre {
+                background-color: #f0f0f0;
             }
         </style>
     </head>
     <body>
-        <textarea id="input"></textarea>
-        <pre><code id="output"></code></pre>
+        <header>
+            <h1>MAR C Compiler <small>n'th attempt</small></h1>
+            <p>
+                This is a simple c (subset) compiler that will incrementally support more features. It is based on this <a href="https://norasandler.com/2017/11/29/Write-a-Compiler.html" target="_blank">really nice abstract tutorial</a>
+            </p>
+            <p>
+                Currently the support is limited to a template of
+                <pre><code>
+$identifier $identifier() {
+    return $expression;
+}
+                </code></pre>
+            </p>
+            <h2>Grammar</h2>
+            <p>
+                <pre><code>
+&lt;program&gt; ::= &lt;function&gt;
+&lt;function&gt; ::= &quot;int&quot; &lt;id&gt; &quot;(&quot; &quot;)&quot; &quot;{&quot; &lt;statement&gt; &quot;}&quot;
+&lt;statement&gt; ::= &quot;return&quot; &lt;exp&gt; &quot;;&quot;
+&lt;exp&gt; ::= &lt;term&gt; { (&quot;+&quot; | &quot;-&quot;) &lt;term&gt; }
+&lt;term&gt; ::= &lt;factor&gt; { (&quot;*&quot; | &quot;/&quot;) &lt;factor&gt; }
+&lt;factor&gt; ::= &quot;(&quot; &lt;exp&gt; &quot;)&quot; | &lt;unary_op&gt; &lt;factor&gt; | &lt;int&gt;
+                </code></pre>
+            </p>
+        </header>
+        <section>
+            <textarea id="input"></textarea>
+            <pre id="output-wrapper"><code id="output"></code></pre>
+        </section>
 
-        <script src="https://kevinramharak.github.io/mar-c-compiler/dist/require.min.js"></script>
-        <script src="https://kevinramharak.github.io/mar-c-compiler/dist/bundle.js"></script>
+        <script src="./dist/require.min.js"></script>
+        <script src="./dist/bundle.js"></script>
 
         <script>
             requirejs.config({
@@ -40,7 +96,7 @@
                 'Generator/index',
             ], function(Lexer, Parser, Generator) {
                 const $ = document.querySelector.bind(document);
-                const compile = (input) => {
+                const compile = window.compile = (input) => {
                     try {
                         const tokens = Lexer.lex(input);
                         const ast = Parser.parse(tokens);
@@ -57,7 +113,7 @@
 
                 const sample = `\
 int main() {
-    return 2 + 2 * 2;
+    return 23 / (2 * (15 / (9 / 3))) + ~47 - -100;
 }
 `;
                 $('#input').innerHTML = sample;

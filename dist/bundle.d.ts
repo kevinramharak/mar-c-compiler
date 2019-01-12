@@ -442,5 +442,11 @@ declare module "Parser/parse" {
 }
 declare module "Parser/index" {
     import parse from "Parser/parse";
-    export { parse };
+    import parseExpression from "Parser/parseExpression";
+    import parseFactor from "Parser/parseFactor";
+    import parseFunctionDeclaration from "Parser/parseFunctionDeclaration";
+    import parseProgram from "Parser/parseProgram";
+    import parseStatement from "Parser/parseStatement";
+    import parseTerm from "Parser/parseTerm";
+    export { parse, parseExpression, parseFactor, parseFunctionDeclaration, parseProgram, parseStatement, parseTerm, };
 }
