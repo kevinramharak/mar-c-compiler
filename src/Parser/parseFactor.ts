@@ -13,7 +13,7 @@ export default function parseFactor(
         stream.next();
         const expression = parseExpression(stream);
         stream.expect(TokenType.RIGHT_PAREN);
-        return new Expression(expression);
+        return expression;
     } else if (peek.type & TokenType.UNARY_OP) {
         const unaryOp = stream.next();
         const factor = parseFactor(stream);
