@@ -11,7 +11,7 @@ export default function parseAdditive(
     while (stream.peek().type & TokenType.ADDITIVE) {
         const operator = stream.next();
         const right = parseTerm(stream);
-        expression = new BinaryOp(operator.lexeme, expression, right);
+        expression = new BinaryOp(operator, expression, right);
     }
     return expression;
 };

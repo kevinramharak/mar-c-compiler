@@ -17,7 +17,7 @@ enum TokenType {
     MULTIPLICATION = bit(8), // *
     DIVISION = bit(9), // /
 
-    BITWISE_COMPLEMENT = bit(10), // ~
+    BITWISE_NOT = bit(10), // ~
     BITWISE_OR = bit(11), // |
     BITWISE_AND = bit(12), // &
     BITWISE_XOR = bit(13), // ^
@@ -41,7 +41,7 @@ enum TokenType {
     INTEGER_LITERAL = bit(26),
 
     // helper types - represents multiple types
-    UNARY_OP = TokenType.BITWISE_COMPLEMENT | TokenType.NEGATION | TokenType.LOGICAL_NOT,
+    UNARY_OP = TokenType.BITWISE_NOT | TokenType.NEGATION | TokenType.LOGICAL_NOT,
     ADDITIVE = TokenType.NEGATION | TokenType.ADDITION,
     TERM = TokenType.MULTIPLICATION | TokenType.DIVISION,
     RELATIONAL = TokenType.LESS_THAN | TokenType.LESS_OR_EQUALS | TokenType.GREATER_THAN | TokenType.GREATER_OR_EQUALS,
