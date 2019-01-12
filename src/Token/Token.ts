@@ -2,7 +2,7 @@ import { IFileInfo } from '../FileInfo';
 import IToken from './IToken';
 import TokenType from './TokenType';
 
-import { inspect } from '../node';
+import { inspect } from 'util';
 
 export default class Token<T extends TokenType> implements IToken {
     public readonly file: string;
