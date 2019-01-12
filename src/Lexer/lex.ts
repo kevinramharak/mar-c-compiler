@@ -49,14 +49,34 @@ export default function lex(stream: string | StringStream, filename?: string): I
             case '~':
                 tokify(TokenType.BITWISE_COMPLEMENT, c);
                 continue lexing;
+            case '^':
+                tokify(TokenType.BITWISE_XOR, c);
+                continue lexing;
         }
 
         // multiple letter punctuation
         switch (c) {
+            case '=':
+                if (!stream.eof) {
+                    switch (stream.peek()) {
+                        case '=':
+                            tokify(TokenType.EQUALS, c + stream.next());
+                            continue lexing;
+                    }
+                }
+                tokify(TokenType.ASSIGN, c);
+                continue lexing;
             case '-':
                 tokify(TokenType.NEGATION, c);
                 continue lexing;
             case '!':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '=':
+                            tokify(TokenType.NOT_EQUALS, c + stream.next());
+                            continue lexing;
+                    }
+                }
                 tokify(TokenType.LOGICAL_NOT, c);
                 continue lexing;
             case '+':
@@ -67,6 +87,44 @@ export default function lex(stream: string | StringStream, filename?: string): I
                 continue lexing;
             case '/':
                 tokify(TokenType.DIVISION, c);
+                continue lexing;
+            case '|':
+                if (!stream.eof) {
+                    switch (stream.peek()) {
+                        case '|':
+                            tokify(TokenType.LOGICAL_OR, c + stream.next());
+                            continue lexing;
+                    }
+                }
+                tokify(TokenType.BITWISE_OR, c);
+                continue lexing;
+            case '&':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '&':
+                            tokify(TokenType.LOGICAL_AND, c + stream.next());
+                            continue lexing;
+                    }
+                }
+                tokify(TokenType.BITWISE_AND, c);
+                continue lexing;
+            case '<':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '=':
+                            tokify(TokenType.LESS_OR_EQUALS, c + stream.next());
+                    }
+                }
+                tokify(TokenType.LESS_THAN, c);
+                continue lexing;
+            case '>':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '=':
+                            tokify(TokenType.GREATER_OR_EQUALS, c + stream.next());
+                    }
+                }
+                tokify(TokenType.GREATER_THAN, c);
                 continue lexing;
         }
 
@@ -98,6 +156,8 @@ export default function lex(stream: string | StringStream, filename?: string): I
             tokify(type, lexeme);
             continue lexing;
         }
+
+        tokify(TokenType.UNKOWN, c);
     }
 
     return tokens;

@@ -2,7 +2,7 @@ import { IntegerConstant, UnaryOp, Expression } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
-import parseExpression from './parseExpression';
+import { parseExpression } from '.';
 
 export default function parseFactor(
     stream: TokenStream
