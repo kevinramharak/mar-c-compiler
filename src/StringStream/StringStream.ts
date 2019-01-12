@@ -1,4 +1,4 @@
-import EventEmitter from 'eventemitter3';
+import { EventEmitter } from 'events';
 import EOFError from './EOFError';
 
 export default class StringStream {

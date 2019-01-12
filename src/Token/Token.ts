@@ -2,7 +2,7 @@ import { IFileInfo } from '../FileInfo';
 import IToken from './IToken';
 import TokenType from './TokenType';
 
-//import { inspect } from '../node';
+import { inspect } from '../node';
 
 export default class Token<T extends TokenType> implements IToken {
     public readonly file: string;
@@ -15,13 +15,13 @@ export default class Token<T extends TokenType> implements IToken {
         this.col = info.col;
     }
 
-    // public [inspect.custom]() {
-    //     return {
-    //         lexeme: this.lexeme,
-    //         type: TokenType[this.type],
-    //         file: this.file,
-    //         line: this.line,
-    //         col: this.col,
-    //     };
-    // }
+    public [inspect.custom]() {
+        return {
+            lexeme: this.lexeme,
+            type: TokenType[this.type],
+            file: this.file,
+            line: this.line,
+            col: this.col,
+        };
+    }
 }
