@@ -24,19 +24,19 @@ ${node.name}:
     }
 
     public visitBinaryOp(node: AST.BinaryOp): string {
-        let asm = this.visit(node.left);
+        let asm = this.visit(node.right);
         asm += '  PUSH A\n';
-        asm += this.visit(node.right) as string;
+        asm += this.visit(node.left) as string;
         asm += '  POP B\n';
         switch (node.operator) {
             case '*':
                 asm += '  MUL B'
-            break;
+                break;
             case '/':
                 // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
-                asm += '  MOV Y, 0';
+                asm += '  MOV Y, 0\n';
                 asm += '  DIV B';
-            break;
+                break;
             case '+':
                 asm += '  ADD A, B';
                 break;
