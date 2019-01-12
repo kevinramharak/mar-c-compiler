@@ -20,11 +20,7 @@
         </style>
     </head>
     <body>
-        <textarea id="input">
-        int main() {
-            return 2 + 2 * 2;
-        }
-        </textarea>
+        <textarea id="input"></textarea>
         <pre><code id="output"></code></pre>
 
         <script src="https://kevinramharak.github.io/mar-c-compiler/dist/require.min.js"></script>
@@ -59,11 +55,13 @@
                     $('#output').innerHTML = compile(e.target.value);
                 };
 
-                $('#output').innerHTML = compile(`
-        int main() {
-            return 2 + 2 * 2;
-        }
-        `);
+                const sample = `\
+int main() {
+    return 2 + 2 * 2;
+}
+`
+                $('#input'.innerHTML) = sample;
+                $('#output').innerHTML = compile(sample);
             });
         </script>
     </body>
