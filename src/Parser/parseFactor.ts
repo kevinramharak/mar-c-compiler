@@ -15,9 +15,9 @@ export default function parseFactor(
         stream.expect(TokenType.RIGHT_PAREN);
         return expression;
     } else if (peek.type & TokenType.UNARY_OP) {
-        const unaryOp = stream.next();
+        const operator = stream.next();
         const factor = parseFactor(stream);
-        return new UnaryOp(unaryOp.lexeme, factor);
+        return new UnaryOp(operator, factor);
     } else {
         const constant = stream.expect(TokenType.INTEGER_LITERAL);
         return new IntegerConstant(Number.parseInt(constant.lexeme));

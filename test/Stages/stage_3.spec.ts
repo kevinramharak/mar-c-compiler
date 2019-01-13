@@ -106,7 +106,7 @@ main:
   MOV A, 3
   PUSH A
   MOV A, 2
-  NEG A
+  NOT A
   POP B
   ADD A, B
   ret
@@ -117,7 +117,7 @@ main:
   MOV A, 1
   POP B
   ADD A, B
-  NEG A
+  NOT A
   ret
 `
 };

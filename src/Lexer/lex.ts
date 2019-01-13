@@ -47,16 +47,36 @@ export default function lex(stream: string | StringStream, filename?: string): I
                 tokify(TokenType.SEMI_COLON, c);
                 continue lexing;
             case '~':
-                tokify(TokenType.BITWISE_COMPLEMENT, c);
+                tokify(TokenType.BITWISE_NOT, c);
+                continue lexing;
+            case '^':
+                tokify(TokenType.BITWISE_XOR, c);
                 continue lexing;
         }
 
         // multiple letter punctuation
         switch (c) {
+            case '=':
+                if (!stream.eof) {
+                    switch (stream.peek()) {
+                        case '=':
+                            tokify(TokenType.EQUALS, c + stream.next());
+                            continue lexing;
+                    }
+                }
+                tokify(TokenType.ASSIGN, c);
+                continue lexing;
             case '-':
                 tokify(TokenType.NEGATION, c);
                 continue lexing;
             case '!':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '=':
+                            tokify(TokenType.NOT_EQUALS, c + stream.next());
+                            continue lexing;
+                    }
+                }
                 tokify(TokenType.LOGICAL_NOT, c);
                 continue lexing;
             case '+':
@@ -68,18 +88,67 @@ export default function lex(stream: string | StringStream, filename?: string): I
             case '/':
                 tokify(TokenType.DIVISION, c);
                 continue lexing;
+            case '|':
+                if (!stream.eof) {
+                    switch (stream.peek()) {
+                        case '|':
+                            tokify(TokenType.LOGICAL_OR, c + stream.next());
+                            continue lexing;
+                    }
+                }
+                tokify(TokenType.BITWISE_OR, c);
+                continue lexing;
+            case '&':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '&':
+                            tokify(TokenType.LOGICAL_AND, c + stream.next());
+                            continue lexing;
+                    }
+                }
+                tokify(TokenType.BITWISE_AND, c);
+                continue lexing;
+            case '<':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '=':
+                            tokify(TokenType.LESS_OR_EQUALS, c + stream.next());
+                    }
+                }
+                tokify(TokenType.LESS_THAN, c);
+                continue lexing;
+            case '>':
+                if (!stream.eof) {
+                    switch(stream.peek()) {
+                        case '=':
+                            tokify(TokenType.GREATER_OR_EQUALS, c + stream.next());
+                    }
+                }
+                tokify(TokenType.GREATER_THAN, c);
+                continue lexing;
         }
 
         // integer literal: https://en.cppreference.com/w/c/language/integer_constant
-        // TODO: refactor to a function, also put 'ull' suffixes logic in that function
+        // float literal: https://en.cppreference.com/w/c/language/floating_constant
+        // #TODO: support integer and float suffixes
+        // base 10
         if (is.decimal(c)) {
-            tokify(TokenType.INTEGER_LITERAL, c + stream.while(is.digit));
+            const integer = c + stream.while(is.digit);
+            const peek = (!stream.eof) ? stream.peek() : false;
+            if (peek && peek === '.') {
+                const dot = stream.next();
+                const float = stream.while((c) => is.digit(c));
+                tokify(TokenType.FLOAT_LITERAL, integer + dot + float);
+            }
+            
+            tokify(TokenType.INTEGER_LITERAL, integer);
             continue lexing;
         }
 
+        // #TODO: support float hexadecimal
         if (c === '0') {
             const peek = (!stream.eof) ? stream.peek() : false;
-            // hex
+            // hexadecimal
             if (peek && (peek === 'x' || peek === 'X')) {
                 const x = stream.next();
                 tokify(TokenType.INTEGER_LITERAL, c + x + stream.while(is.hex));
@@ -98,6 +167,8 @@ export default function lex(stream: string | StringStream, filename?: string): I
             tokify(type, lexeme);
             continue lexing;
         }
+
+        tokify(TokenType.UNKOWN, c);
     }
 
     return tokens;

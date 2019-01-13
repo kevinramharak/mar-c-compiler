@@ -8,10 +8,10 @@ export default function parseTerm(
     stream: TokenStream
 ): Expression {
     let factor = parseFactor(stream);
-    while (stream.peek().type & (TokenType.MULTIPLICATION | TokenType.DIVISION)) {
+    while (stream.peek().type & TokenType.TERM) {
         const operator = stream.next();
         const right = parseFactor(stream);
-        factor = new BinaryOp(operator.lexeme, factor, right);
+        factor = new BinaryOp(operator, factor, right);
     }
     return factor;
 };
