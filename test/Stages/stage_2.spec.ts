@@ -12,12 +12,12 @@ describe('Stage 2', () => {
         'bitwise_zero': `\
 main:
   MOV A, 0
-  NEG A
+  NOT A
   ret
 `,      'bitwise': `\
 main:
   MOV A, 12
-  NEG A
+  NOT A
   ret
 `,      'neg': `\
 main:
@@ -28,7 +28,7 @@ main:
 main:
   MOV A, 0
   NEG A
-  NEG A
+  NOT A
   ret
 `,      'nested_ops': `\
 main:

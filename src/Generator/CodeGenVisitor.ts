@@ -91,16 +91,20 @@ ${node.name}:
 
     // TODO: fix this, currently generated code and tests are wrong
     public visitUnaryOp(node: AST.UnaryOp): string {
-        let asm = this.visit(node.expression);
+        let asm = this.visit(node.expression) as string;
         switch (node.operator.type) {
-            case TokenType.NEGATION:
             case TokenType.LOGICAL_NOT:
             case TokenType.BITWISE_NOT:
+                asm += `\
+  NOT A
+`
+            case TokenType.NEGATION:
+                asm += `\
+  NEG A
+`;
                 break;
         }
-        return this.visit(node.expression) + `\
-  NEG A
-`
+        return asm;
     }
 
     public visitConstant(node: AST.Constant): string {
