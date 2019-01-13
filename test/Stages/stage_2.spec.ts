@@ -7,6 +7,8 @@ const PREFIX = './samples/stage_2';
 const INVALID = `${PREFIX}/invalid`;
 const VALID = `${PREFIX}/valid`;
 
+// TODO: fix tests
+
 describe('Stage 2', () => {
     const valid: any = {
         'bitwise_zero': `\

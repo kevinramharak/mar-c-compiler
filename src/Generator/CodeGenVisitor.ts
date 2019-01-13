@@ -1,16 +1,24 @@
 import * as AST from '../AST';
 import Visitor from './Visitor';
 import { TokenType } from '../Token';
+import { ILabel } from '.';
 
 export default class CodeGenVisitor extends Visitor<string> {
-    private label = 0;
+    private labelId = 0;
 
     constructor() {
         super()
     }
 
-    private generateLabel(extra: string = ''): string {
-        return `LABEL_${this.label++}_${extra}`;
+    private generateLabel(extra: string = ''): ILabel {
+        const label = `LABEL_${this.labelId++}${(extra) ? `_${extra}` : ''}`;
+        const annotate = (msg: string) => label + `_${msg}`;
+        const toString = () => label;
+        return {
+            label,
+            annotate,
+            toString,
+        }
     }
 
     public visitProgram(node: AST.Program): string {
@@ -51,26 +59,34 @@ ${node.name}:
                 asm += '  SUB A, B';
                 break;
             case TokenType.NOT_EQUALS: {
-                const trueLabel = this.generateLabel('not_equals_true');
-                const endLabel = this.generateLabel('not_equals_end');
-                asm += '  CMP A, B\n';
-                asm += `  JNZ ${trueLabel}\n`;
-                asm += '  MOV A, 0\n';
-                asm += `  JMP ${endLabel}\n`;
-                asm += `${trueLabel}:\n`;
-                asm += '  MOV A, 1\n';
-                asm += `${endLabel}:\n`;
+                const label = this.generateLabel('not_equals');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JNZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                break;
             }
             case TokenType.EQUALITY: {
-                const trueLabel = this.generateLabel('equals_true');
-                const endLabel = this.generateLabel('equals_end');
-                asm += '  CMP A, B\n';
-                asm += `  JZ ${trueLabel}\n`;
-                asm += '  MOV A, 0\n';
-                asm += `  JMP ${endLabel}\n`;
-                asm += `${trueLabel}:\n`;
-                asm += '  MOV A, 1\n';
-                asm += `${endLabel}:\n`;
+                const label = this.generateLabel('not_equals');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                break;
             }
             case TokenType.LESS_THAN: {
 
@@ -89,11 +105,24 @@ ${node.name}:
         return asm as string;
     }
 
-    // TODO: fix this, currently generated code and tests are wrong
     public visitUnaryOp(node: AST.UnaryOp): string {
         let asm = this.visit(node.expression) as string;
         switch (node.operator.type) {
-            case TokenType.LOGICAL_NOT:
+            case TokenType.LOGICAL_NOT: {
+                const label = this.generateLabel('logical_not');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  TEST A, A
+  JZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`
+                break;
+            }
             case TokenType.BITWISE_NOT:
                 asm += `\
   NOT A
