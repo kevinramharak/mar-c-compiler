@@ -129,15 +129,26 @@ export default function lex(stream: string | StringStream, filename?: string): I
         }
 
         // integer literal: https://en.cppreference.com/w/c/language/integer_constant
-        // TODO: refactor to a function, also put 'ull' suffixes logic in that function
+        // float literal: https://en.cppreference.com/w/c/language/floating_constant
+        // #TODO: support integer and float suffixes
+        // base 10
         if (is.decimal(c)) {
-            tokify(TokenType.INTEGER_LITERAL, c + stream.while(is.digit));
+            const integer = c + stream.while(is.digit);
+            const peek = (!stream.eof) ? stream.peek() : false;
+            if (peek && peek === '.') {
+                const dot = stream.next();
+                const float = stream.while((c) => is.digit(c));
+                tokify(TokenType.FLOAT_LITERAL, integer + dot + float);
+            }
+            
+            tokify(TokenType.INTEGER_LITERAL, integer);
             continue lexing;
         }
 
+        // #TODO: support float hexadecimal
         if (c === '0') {
             const peek = (!stream.eof) ? stream.peek() : false;
-            // hex
+            // hexadecimal
             if (peek && (peek === 'x' || peek === 'X')) {
                 const x = stream.next();
                 tokify(TokenType.INTEGER_LITERAL, c + x + stream.while(is.hex));

@@ -38,7 +38,8 @@ enum TokenType {
     KEYWORD = bit(24),
     IDENTIFIER = bit(25), // /[a-z_][a-z0-9_]*/i
 
-    INTEGER_LITERAL = bit(26),
+    INTEGER_LITERAL = bit(26), // /[1-9][0-9]*/
+    FLOAT_LITERAL = bit(27),  // /[1-9][0-9]*[.][0-9]*/
 
     // helper types - represents multiple types
     UNARY_OP = TokenType.BITWISE_NOT | TokenType.NEGATION | TokenType.LOGICAL_NOT,
