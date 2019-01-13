@@ -10,7 +10,7 @@ export default class CodeGenVisitor extends Visitor<string> {
         super()
     }
 
-    private generateLabel(extra: string = ''): ILabel {
+    public generateLabel(extra: string = ''): ILabel {
         const label = `LABEL_${this.labelId++}${(extra) ? `_${extra}` : ''}`;
         const annotate = (msg: string) => label + `_${msg}`;
         const toString = () => label;
@@ -127,6 +127,7 @@ ${endLabel}:
                 asm += `\
   NOT A
 `
+            break;
             case TokenType.NEGATION:
                 asm += `\
   NEG A
