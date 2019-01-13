@@ -47,7 +47,7 @@ export default function lex(stream: string | StringStream, filename?: string): I
                 tokify(TokenType.SEMI_COLON, c);
                 continue lexing;
             case '~':
-                tokify(TokenType.BITWISE_COMPLEMENT, c);
+                tokify(TokenType.BITWISE_NOT, c);
                 continue lexing;
             case '^':
                 tokify(TokenType.BITWISE_XOR, c);
