@@ -1,6 +1,6 @@
 import * as AST from '../AST';
 import Visitor from './Visitor';
-import { Token, TokenType } from 'src/Token';
+import { TokenType } from '../Token';
 
 export default class CodeGenVisitor extends Visitor<string> {
     private label = 0;
