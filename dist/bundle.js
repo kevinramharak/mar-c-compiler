@@ -18,16 +18,31 @@ define("Token/TokenType", ["require", "exports"], function (require, exports) {
         TokenType[TokenType["ADDITION"] = bit(7)] = "ADDITION";
         TokenType[TokenType["MULTIPLICATION"] = bit(8)] = "MULTIPLICATION";
         TokenType[TokenType["DIVISION"] = bit(9)] = "DIVISION";
-        TokenType[TokenType["BITWISE_COMPLEMENT"] = bit(10)] = "BITWISE_COMPLEMENT";
-        TokenType[TokenType["LOGICAL_NOT"] = bit(11)] = "LOGICAL_NOT";
-        TokenType[TokenType["LOGICAL_AND"] = bit(12)] = "LOGICAL_AND";
-        TokenType[TokenType["LOGICAL_OR"] = bit(13)] = "LOGICAL_OR";
-        TokenType[TokenType["KEYWORD"] = bit(14)] = "KEYWORD";
-        TokenType[TokenType["IDENTIFIER"] = bit(15)] = "IDENTIFIER";
-        TokenType[TokenType["INTEGER_LITERAL"] = bit(16)] = "INTEGER_LITERAL";
+        TokenType[TokenType["BITWISE_NOT"] = bit(10)] = "BITWISE_NOT";
+        TokenType[TokenType["BITWISE_OR"] = bit(11)] = "BITWISE_OR";
+        TokenType[TokenType["BITWISE_AND"] = bit(12)] = "BITWISE_AND";
+        TokenType[TokenType["BITWISE_XOR"] = bit(13)] = "BITWISE_XOR";
+        TokenType[TokenType["LOGICAL_NOT"] = bit(14)] = "LOGICAL_NOT";
+        TokenType[TokenType["LOGICAL_AND"] = bit(15)] = "LOGICAL_AND";
+        TokenType[TokenType["LOGICAL_OR"] = bit(16)] = "LOGICAL_OR";
+        TokenType[TokenType["ASSIGN"] = bit(17)] = "ASSIGN";
+        TokenType[TokenType["EQUALS"] = bit(18)] = "EQUALS";
+        TokenType[TokenType["NOT_EQUALS"] = bit(19)] = "NOT_EQUALS";
+        TokenType[TokenType["LESS_THAN"] = bit(20)] = "LESS_THAN";
+        TokenType[TokenType["LESS_OR_EQUALS"] = bit(21)] = "LESS_OR_EQUALS";
+        TokenType[TokenType["GREATER_THAN"] = bit(22)] = "GREATER_THAN";
+        TokenType[TokenType["GREATER_OR_EQUALS"] = bit(23)] = "GREATER_OR_EQUALS";
+        TokenType[TokenType["KEYWORD"] = bit(24)] = "KEYWORD";
+        TokenType[TokenType["IDENTIFIER"] = bit(25)] = "IDENTIFIER";
+        TokenType[TokenType["INTEGER_LITERAL"] = bit(26)] = "INTEGER_LITERAL";
+        TokenType[TokenType["FLOAT_LITERAL"] = bit(27)] = "FLOAT_LITERAL";
         // helper types - represents multiple types
-        TokenType[TokenType["UNARY_OP"] = TokenType.BITWISE_COMPLEMENT | TokenType.NEGATION | TokenType.LOGICAL_NOT] = "UNARY_OP";
-        TokenType[TokenType["BINARY_OP"] = TokenType.NEGATION | TokenType.ADDITION | TokenType.MULTIPLICATION | TokenType.DIVISION] = "BINARY_OP";
+        TokenType[TokenType["UNARY_OP"] = TokenType.BITWISE_NOT | TokenType.NEGATION | TokenType.LOGICAL_NOT] = "UNARY_OP";
+        TokenType[TokenType["ADDITIVE"] = TokenType.NEGATION | TokenType.ADDITION] = "ADDITIVE";
+        TokenType[TokenType["TERM"] = TokenType.MULTIPLICATION | TokenType.DIVISION] = "TERM";
+        TokenType[TokenType["RELATIONAL"] = TokenType.LESS_THAN | TokenType.LESS_OR_EQUALS | TokenType.GREATER_THAN | TokenType.GREATER_OR_EQUALS] = "RELATIONAL";
+        TokenType[TokenType["EQUALITY"] = TokenType.EQUALS | TokenType.NOT_EQUALS] = "EQUALITY";
+        TokenType[TokenType["BINARY_OP"] = TokenType.TERM | TokenType.ADDITIVE | TokenType.RELATIONAL | TokenType.EQUALITY] = "BINARY_OP";
     })(TokenType || (TokenType = {}));
     ;
     exports.default = TokenType;
@@ -555,13 +570,47 @@ define("Generator/Visitor", ["require", "exports"], function (require, exports) 
     }
     exports.default = Visitor;
 });
-define("Generator/CodeGenVisitor", ["require", "exports", "Generator/Visitor"], function (require, exports, Visitor_1) {
+define("Generator/generate", ["require", "exports", "Generator/CodeGenVisitor"], function (require, exports, CodeGenVisitor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    CodeGenVisitor_1 = __importDefault(CodeGenVisitor_1);
+    function generate(ast) {
+        return new CodeGenVisitor_1.default().visit(ast);
+    }
+    exports.default = generate;
+});
+define("Generator/ILabel", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("Generator/index", ["require", "exports", "Generator/generate", "Generator/CodeGenVisitor", "Generator/Visitor"], function (require, exports, generate_1, CodeGenVisitor_2, Visitor_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    generate_1 = __importDefault(generate_1);
+    CodeGenVisitor_2 = __importDefault(CodeGenVisitor_2);
     Visitor_1 = __importDefault(Visitor_1);
-    class CodeGenVisitor extends Visitor_1.default {
+    exports.generate = generate_1.default;
+    exports.CodeGenVisitor = CodeGenVisitor_2.default;
+    exports.Visitor = Visitor_1.default;
+});
+define("Generator/CodeGenVisitor", ["require", "exports", "Generator/Visitor", "Token/index"], function (require, exports, Visitor_2, Token_4) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    Visitor_2 = __importDefault(Visitor_2);
+    class CodeGenVisitor extends Visitor_2.default {
         constructor() {
             super();
+            this.labelId = 0;
+        }
+        generateLabel(extra = '') {
+            const label = `LABEL_${this.labelId++}${(extra) ? `_${extra}` : ''}`;
+            const annotate = (msg) => label + `_${msg}`;
+            const toString = () => label;
+            return {
+                label,
+                annotate,
+                toString,
+            };
         }
         visitProgram(node) {
             return this.visit(node.declaration);
@@ -582,29 +631,93 @@ ${node.name}:
             asm += '  PUSH A\n';
             asm += this.visit(node.left);
             asm += '  POP B\n';
-            switch (node.operator) {
-                case '*':
+            switch (node.operator.type) {
+                case Token_4.TokenType.MULTIPLICATION:
                     asm += '  MUL B';
                     break;
-                case '/':
+                case Token_4.TokenType.DIVISION:
                     // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
                     asm += '  MOV Y, 0\n';
                     asm += '  DIV B';
                     break;
-                case '+':
+                case Token_4.TokenType.ADDITION:
                     asm += '  ADD A, B';
                     break;
-                case '-':
+                case Token_4.TokenType.NEGATION:
                     asm += '  SUB A, B';
                     break;
+                case Token_4.TokenType.NOT_EQUALS: {
+                    const label = this.generateLabel('not_equals');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  CMP A, B
+  JNZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                    break;
+                }
+                case Token_4.TokenType.EQUALITY: {
+                    const label = this.generateLabel('not_equals');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  CMP A, B
+  JZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                    break;
+                }
+                case Token_4.TokenType.LESS_THAN: {
+                }
+                case Token_4.TokenType.LESS_OR_EQUALS: {
+                }
+                case Token_4.TokenType.GREATER_THAN: {
+                }
+                case Token_4.TokenType.GREATER_OR_EQUALS: {
+                }
             }
             asm += '\n';
             return asm;
         }
         visitUnaryOp(node) {
-            return this.visit(node.expression) + `\
+            let asm = this.visit(node.expression);
+            switch (node.operator.type) {
+                case Token_4.TokenType.LOGICAL_NOT: {
+                    const label = this.generateLabel('logical_not');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  TEST A, A
+  JZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                    break;
+                }
+                case Token_4.TokenType.BITWISE_NOT:
+                    asm += `\
+  NOT A
+`;
+                    break;
+                case Token_4.TokenType.NEGATION:
+                    asm += `\
   NEG A
 `;
+                    break;
+            }
+            return asm;
         }
         visitConstant(node) {
             return this.visitIntegerConstant(node);
@@ -616,21 +729,6 @@ ${node.name}:
         }
     }
     exports.default = CodeGenVisitor;
-});
-define("Generator/generate", ["require", "exports", "Generator/CodeGenVisitor"], function (require, exports, CodeGenVisitor_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    CodeGenVisitor_1 = __importDefault(CodeGenVisitor_1);
-    function generate(ast) {
-        return new CodeGenVisitor_1.default().visit(ast);
-    }
-    exports.default = generate;
-});
-define("Generator/index", ["require", "exports", "Generator/generate"], function (require, exports, generate_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    generate_1 = __importDefault(generate_1);
-    exports.generate = generate_1.default;
 });
 define("Lexer/keywords", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -653,10 +751,11 @@ define("Lexer/is", ["require", "exports", "Lexer/keywords"], function (require, 
         identifierStart: (c) => c === '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'),
         keyword: (c) => keywords_1.default.includes(c),
         octal: (c) => c >= '0' && c <= '7',
+        integerSuffix: (c) => c === 'u' || c === 'U' || c === 'L' || c === 'l',
     };
     exports.default = is;
 });
-define("Lexer/lex", ["require", "exports", "Lexer/is", "FileInfo/index", "StringStream/index", "Token/index"], function (require, exports, is_1, FileInfo_2, StringStream_2, Token_4) {
+define("Lexer/lex", ["require", "exports", "Lexer/is", "FileInfo/index", "StringStream/index", "Token/index"], function (require, exports, is_1, FileInfo_2, StringStream_2, Token_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     is_1 = __importDefault(is_1);
@@ -665,7 +764,7 @@ define("Lexer/lex", ["require", "exports", "Lexer/is", "FileInfo/index", "String
         const tokens = [];
         const info = new FileInfo_2.FileInfo(stream, filename);
         // tslint:disable-next-line no-shadowed-variable
-        const tokenHelper = (type, lexeme, info) => new Token_4.Token(type, lexeme, info);
+        const tokenHelper = (type, lexeme, info) => new Token_5.Token(type, lexeme, info);
         lexing: while (!stream.eof) {
             const currentInfo = { name: info.name, line: info.line, col: info.col };
             const tokify = (type, lexeme) => tokens.push(tokenHelper(type, lexeme, currentInfo));
@@ -682,68 +781,137 @@ define("Lexer/lex", ["require", "exports", "Lexer/is", "FileInfo/index", "String
             // one letter punctuation
             switch (c) {
                 case '{':
-                    tokify(Token_4.TokenType.LEFT_BRACE, c);
+                    tokify(Token_5.TokenType.LEFT_BRACE, c);
                     continue lexing;
                 case '}':
-                    tokify(Token_4.TokenType.RIGHT_BRACE, c);
+                    tokify(Token_5.TokenType.RIGHT_BRACE, c);
                     continue lexing;
                 case '(':
-                    tokify(Token_4.TokenType.LEFT_PAREN, c);
+                    tokify(Token_5.TokenType.LEFT_PAREN, c);
                     continue lexing;
                 case ')':
-                    tokify(Token_4.TokenType.RIGHT_PAREN, c);
+                    tokify(Token_5.TokenType.RIGHT_PAREN, c);
                     continue lexing;
                 case ';':
-                    tokify(Token_4.TokenType.SEMI_COLON, c);
+                    tokify(Token_5.TokenType.SEMI_COLON, c);
                     continue lexing;
                 case '~':
-                    tokify(Token_4.TokenType.BITWISE_COMPLEMENT, c);
+                    tokify(Token_5.TokenType.BITWISE_NOT, c);
+                    continue lexing;
+                case '^':
+                    tokify(Token_5.TokenType.BITWISE_XOR, c);
                     continue lexing;
             }
             // multiple letter punctuation
             switch (c) {
+                case '=':
+                    if (!stream.eof) {
+                        switch (stream.peek()) {
+                            case '=':
+                                tokify(Token_5.TokenType.EQUALS, c + stream.next());
+                                continue lexing;
+                        }
+                    }
+                    tokify(Token_5.TokenType.ASSIGN, c);
+                    continue lexing;
                 case '-':
-                    tokify(Token_4.TokenType.NEGATION, c);
+                    tokify(Token_5.TokenType.NEGATION, c);
                     continue lexing;
                 case '!':
-                    tokify(Token_4.TokenType.LOGICAL_NOT, c);
+                    if (!stream.eof) {
+                        switch (stream.peek()) {
+                            case '=':
+                                tokify(Token_5.TokenType.NOT_EQUALS, c + stream.next());
+                                continue lexing;
+                        }
+                    }
+                    tokify(Token_5.TokenType.LOGICAL_NOT, c);
                     continue lexing;
                 case '+':
-                    tokify(Token_4.TokenType.ADDITION, c);
+                    tokify(Token_5.TokenType.ADDITION, c);
                     continue lexing;
                 case '*':
-                    tokify(Token_4.TokenType.MULTIPLICATION, c);
+                    tokify(Token_5.TokenType.MULTIPLICATION, c);
                     continue lexing;
                 case '/':
-                    tokify(Token_4.TokenType.DIVISION, c);
+                    tokify(Token_5.TokenType.DIVISION, c);
+                    continue lexing;
+                case '|':
+                    if (!stream.eof) {
+                        switch (stream.peek()) {
+                            case '|':
+                                tokify(Token_5.TokenType.LOGICAL_OR, c + stream.next());
+                                continue lexing;
+                        }
+                    }
+                    tokify(Token_5.TokenType.BITWISE_OR, c);
+                    continue lexing;
+                case '&':
+                    if (!stream.eof) {
+                        switch (stream.peek()) {
+                            case '&':
+                                tokify(Token_5.TokenType.LOGICAL_AND, c + stream.next());
+                                continue lexing;
+                        }
+                    }
+                    tokify(Token_5.TokenType.BITWISE_AND, c);
+                    continue lexing;
+                case '<':
+                    if (!stream.eof) {
+                        switch (stream.peek()) {
+                            case '=':
+                                tokify(Token_5.TokenType.LESS_OR_EQUALS, c + stream.next());
+                        }
+                    }
+                    tokify(Token_5.TokenType.LESS_THAN, c);
+                    continue lexing;
+                case '>':
+                    if (!stream.eof) {
+                        switch (stream.peek()) {
+                            case '=':
+                                tokify(Token_5.TokenType.GREATER_OR_EQUALS, c + stream.next());
+                        }
+                    }
+                    tokify(Token_5.TokenType.GREATER_THAN, c);
                     continue lexing;
             }
             // integer literal: https://en.cppreference.com/w/c/language/integer_constant
-            // TODO: refactor to a function, also put 'ull' suffixes logic in that function
+            // float literal: https://en.cppreference.com/w/c/language/floating_constant
+            // #TODO: support integer and float suffixes
+            // base 10
             if (is_1.default.decimal(c)) {
-                tokify(Token_4.TokenType.INTEGER_LITERAL, c + stream.while(is_1.default.digit));
+                const integer = c + stream.while(is_1.default.digit);
+                const peek = (!stream.eof) ? stream.peek() : false;
+                if (peek && peek === '.') {
+                    const dot = stream.next();
+                    const float = stream.while((c) => is_1.default.digit(c));
+                    tokify(Token_5.TokenType.FLOAT_LITERAL, integer + dot + float);
+                }
+                tokify(Token_5.TokenType.INTEGER_LITERAL, integer);
                 continue lexing;
             }
+            // #TODO: support float hexadecimal
             if (c === '0') {
                 const peek = (!stream.eof) ? stream.peek() : false;
-                // hex
+                // hexadecimal
                 if (peek && (peek === 'x' || peek === 'X')) {
                     const x = stream.next();
-                    tokify(Token_4.TokenType.INTEGER_LITERAL, c + x + stream.while(is_1.default.hex));
+                    tokify(Token_5.TokenType.INTEGER_LITERAL, c + x + stream.while(is_1.default.hex));
                 }
                 // octal
                 else {
-                    tokify(Token_4.TokenType.INTEGER_LITERAL, c + stream.while(is_1.default.octal));
+                    tokify(Token_5.TokenType.INTEGER_LITERAL, c + stream.while(is_1.default.octal));
                 }
                 continue lexing;
             }
             // identifiers and keywords
             if (is_1.default.identifierStart(c)) {
                 const lexeme = c + stream.while(is_1.default.identifier);
-                const type = (is_1.default.keyword(lexeme)) ? Token_4.TokenType.KEYWORD : Token_4.TokenType.IDENTIFIER;
+                const type = (is_1.default.keyword(lexeme)) ? Token_5.TokenType.KEYWORD : Token_5.TokenType.IDENTIFIER;
                 tokify(type, lexeme);
                 continue lexing;
             }
+            tokify(Token_5.TokenType.UNKOWN, c);
         }
         return tokens;
     }
@@ -760,102 +928,55 @@ define("Lexer/index", ["require", "exports", "Lexer/is", "Lexer/keywords", "Lexe
     exports.keywords = keywords_2.default;
     exports.lex = lex_1.default;
 });
-define("Parser/parseFactor", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_1, Token_5, _1) {
+define("Parser/parseExpression", ["require", "exports", "Parser/index"], function (require, exports, _1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    function parseFactor(stream) {
-        const peek = stream.peek();
-        if (peek.type === Token_5.TokenType.LEFT_PAREN) {
-            stream.next();
-            const expression = _1.parseExpression(stream);
-            stream.expect(Token_5.TokenType.RIGHT_PAREN);
-            return expression;
-        }
-        else if (peek.type & Token_5.TokenType.UNARY_OP) {
-            const unaryOp = stream.next();
-            const factor = parseFactor(stream);
-            return new AST_1.UnaryOp(unaryOp.lexeme, factor);
-        }
-        else {
-            const constant = stream.expect(Token_5.TokenType.INTEGER_LITERAL);
-            return new AST_1.IntegerConstant(Number.parseInt(constant.lexeme));
-        }
-    }
-    exports.default = parseFactor;
-    ;
-});
-define("Parser/parseTerm", ["require", "exports", "AST/index", "Token/index", "Parser/parseFactor"], function (require, exports, AST_2, Token_6, parseFactor_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    parseFactor_1 = __importDefault(parseFactor_1);
-    function parseTerm(stream) {
-        let factor = parseFactor_1.default(stream);
-        while (stream.peek().type & (Token_6.TokenType.MULTIPLICATION | Token_6.TokenType.DIVISION)) {
-            const operator = stream.next();
-            const right = parseFactor_1.default(stream);
-            factor = new AST_2.BinaryOp(operator.lexeme, factor, right);
-        }
-        return factor;
-    }
-    exports.default = parseTerm;
-    ;
-});
-define("Parser/parseExpression", ["require", "exports", "AST/index", "Token/index", "Parser/parseTerm"], function (require, exports, AST_3, Token_7, parseTerm_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    parseTerm_1 = __importDefault(parseTerm_1);
     function parseExpression(stream) {
-        let term = parseTerm_1.default(stream);
-        while (stream.peek().type & (Token_7.TokenType.ADDITION | Token_7.TokenType.NEGATION)) {
-            const operator = stream.next();
-            const right = parseTerm_1.default(stream);
-            term = new AST_3.BinaryOp(operator.lexeme, term, right);
-        }
-        return term;
+        return _1.parseLogicalOr(stream);
     }
     exports.default = parseExpression;
     ;
 });
-define("Parser/parseStatement", ["require", "exports", "AST/index", "Token/index", "Parser/parseExpression"], function (require, exports, AST_4, Token_8, parseExpression_1) {
+define("Parser/parseStatement", ["require", "exports", "AST/index", "Token/index", "Parser/parseExpression"], function (require, exports, AST_1, Token_6, parseExpression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parseExpression_1 = __importDefault(parseExpression_1);
     function parseStatement(stream) {
-        const keyword = stream.expect(Token_8.TokenType.KEYWORD);
+        const keyword = stream.expect(Token_6.TokenType.KEYWORD);
         if (keyword.lexeme !== 'return') {
             stream.panic(keyword, 'return');
         }
         const expression = parseExpression_1.default(stream);
-        stream.expect(Token_8.TokenType.SEMI_COLON);
-        return new AST_4.ReturnStatement(expression);
+        stream.expect(Token_6.TokenType.SEMI_COLON);
+        return new AST_1.ReturnStatement(expression);
     }
     exports.default = parseStatement;
     ;
 });
-define("Parser/parseFunctionDeclaration", ["require", "exports", "AST/index", "Token/index", "Parser/parseStatement"], function (require, exports, AST_5, Token_9, parseStatement_1) {
+define("Parser/parseFunctionDeclaration", ["require", "exports", "AST/index", "Token/index", "Parser/parseStatement"], function (require, exports, AST_2, Token_7, parseStatement_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parseStatement_1 = __importDefault(parseStatement_1);
     function parseFunctionDeclaration(stream) {
-        const type = stream.expect(Token_9.TokenType.KEYWORD | Token_9.TokenType.IDENTIFIER);
-        const identifier = stream.expect(Token_9.TokenType.IDENTIFIER);
-        stream.expect(Token_9.TokenType.LEFT_PAREN);
-        stream.expect(Token_9.TokenType.RIGHT_PAREN);
-        stream.expect(Token_9.TokenType.LEFT_BRACE);
+        const type = stream.expect(Token_7.TokenType.KEYWORD | Token_7.TokenType.IDENTIFIER);
+        const identifier = stream.expect(Token_7.TokenType.IDENTIFIER);
+        stream.expect(Token_7.TokenType.LEFT_PAREN);
+        stream.expect(Token_7.TokenType.RIGHT_PAREN);
+        stream.expect(Token_7.TokenType.LEFT_BRACE);
         const statement = parseStatement_1.default(stream);
-        stream.expect(Token_9.TokenType.RIGHT_BRACE);
-        return new AST_5.FunctionDeclaration(type.lexeme, identifier.lexeme, statement, { token: type, stream });
+        stream.expect(Token_7.TokenType.RIGHT_BRACE);
+        return new AST_2.FunctionDeclaration(type.lexeme, identifier.lexeme, statement, { token: type, stream });
     }
     exports.default = parseFunctionDeclaration;
     ;
 });
-define("Parser/parseProgram", ["require", "exports", "AST/index", "Parser/parseFunctionDeclaration"], function (require, exports, AST_6, parseFunctionDeclaration_1) {
+define("Parser/parseProgram", ["require", "exports", "AST/index", "Parser/parseFunctionDeclaration"], function (require, exports, AST_3, parseFunctionDeclaration_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parseFunctionDeclaration_1 = __importDefault(parseFunctionDeclaration_1);
     function parseProgram(stream) {
         const func = parseFunctionDeclaration_1.default(stream);
-        return new AST_6.Program(func);
+        return new AST_3.Program(func);
     }
     exports.default = parseProgram;
     ;
@@ -870,22 +991,147 @@ define("Parser/parse", ["require", "exports", "TokenStream/index", "Parser/parse
     }
     exports.default = parse;
 });
-define("Parser/index", ["require", "exports", "Parser/parse", "Parser/parseExpression", "Parser/parseFactor", "Parser/parseFunctionDeclaration", "Parser/parseProgram", "Parser/parseStatement", "Parser/parseTerm"], function (require, exports, parse_1, parseExpression_2, parseFactor_2, parseFunctionDeclaration_2, parseProgram_2, parseStatement_2, parseTerm_2) {
+define("Parser/parseLogicalOr", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_4, Token_8, _2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function parseLogicalOr(stream) {
+        let expression = _2.parseLogicalAnd(stream);
+        while (stream.peek().type & Token_8.TokenType.LOGICAL_OR) {
+            const operator = stream.next();
+            const right = _2.parseLogicalAnd(stream);
+            expression = new AST_4.BinaryOp(operator, expression, right);
+        }
+        return expression;
+    }
+    exports.default = parseLogicalOr;
+    ;
+});
+define("Parser/parseLogicalAnd", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_5, Token_9, _3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function parseLogicalOr(stream) {
+        let expression = _3.parseEquality(stream);
+        while (stream.peek().type & Token_9.TokenType.LOGICAL_AND) {
+            const operator = stream.next();
+            const right = _3.parseEquality(stream);
+            expression = new AST_5.BinaryOp(operator, expression, right);
+        }
+        return expression;
+    }
+    exports.default = parseLogicalOr;
+    ;
+});
+define("Parser/parseEquality", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_6, Token_10, _4) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function parseLogicalOr(stream) {
+        let expression = _4.parseRelational(stream);
+        while (stream.peek().type & Token_10.TokenType.EQUALITY) {
+            const operator = stream.next();
+            const right = _4.parseRelational(stream);
+            expression = new AST_6.BinaryOp(operator, expression, right);
+        }
+        return expression;
+    }
+    exports.default = parseLogicalOr;
+    ;
+});
+define("Parser/parseRelational", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_7, Token_11, _5) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function parseLogicalOr(stream) {
+        let expression = _5.parseAdditive(stream);
+        while (stream.peek().type & Token_11.TokenType.RELATIONAL) {
+            const operator = stream.next();
+            const right = _5.parseAdditive(stream);
+            expression = new AST_7.BinaryOp(operator, expression, right);
+        }
+        return expression;
+    }
+    exports.default = parseLogicalOr;
+    ;
+});
+define("Parser/parseAdditive", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_8, Token_12, _6) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function parseAdditive(stream) {
+        let expression = _6.parseTerm(stream);
+        while (stream.peek().type & Token_12.TokenType.ADDITIVE) {
+            const operator = stream.next();
+            const right = _6.parseTerm(stream);
+            expression = new AST_8.BinaryOp(operator, expression, right);
+        }
+        return expression;
+    }
+    exports.default = parseAdditive;
+    ;
+});
+define("Parser/parseFactor", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_9, Token_13, _7) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function parseFactor(stream) {
+        const peek = stream.peek();
+        if (peek.type === Token_13.TokenType.LEFT_PAREN) {
+            stream.next();
+            const expression = _7.parseExpression(stream);
+            stream.expect(Token_13.TokenType.RIGHT_PAREN);
+            return expression;
+        }
+        else if (peek.type & Token_13.TokenType.UNARY_OP) {
+            const operator = stream.next();
+            const factor = parseFactor(stream);
+            return new AST_9.UnaryOp(operator, factor);
+        }
+        else {
+            const constant = stream.expect(Token_13.TokenType.INTEGER_LITERAL);
+            return new AST_9.IntegerConstant(Number.parseInt(constant.lexeme));
+        }
+    }
+    exports.default = parseFactor;
+    ;
+});
+define("Parser/parseTerm", ["require", "exports", "AST/index", "Token/index", "Parser/parseFactor"], function (require, exports, AST_10, Token_14, parseFactor_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    parseFactor_1 = __importDefault(parseFactor_1);
+    function parseTerm(stream) {
+        let factor = parseFactor_1.default(stream);
+        while (stream.peek().type & Token_14.TokenType.TERM) {
+            const operator = stream.next();
+            const right = parseFactor_1.default(stream);
+            factor = new AST_10.BinaryOp(operator, factor, right);
+        }
+        return factor;
+    }
+    exports.default = parseTerm;
+    ;
+});
+define("Parser/index", ["require", "exports", "Parser/parse", "Parser/parseProgram", "Parser/parseFunctionDeclaration", "Parser/parseStatement", "Parser/parseExpression", "Parser/parseLogicalOr", "Parser/parseLogicalAnd", "Parser/parseEquality", "Parser/parseRelational", "Parser/parseAdditive", "Parser/parseTerm", "Parser/parseFactor"], function (require, exports, parse_1, parseProgram_2, parseFunctionDeclaration_2, parseStatement_2, parseExpression_2, parseLogicalOr_1, parseLogicalAnd_1, parseEquality_1, parseRelational_1, parseAdditive_1, parseTerm_1, parseFactor_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parse_1 = __importDefault(parse_1);
-    parseExpression_2 = __importDefault(parseExpression_2);
-    parseFactor_2 = __importDefault(parseFactor_2);
-    parseFunctionDeclaration_2 = __importDefault(parseFunctionDeclaration_2);
     parseProgram_2 = __importDefault(parseProgram_2);
+    parseFunctionDeclaration_2 = __importDefault(parseFunctionDeclaration_2);
     parseStatement_2 = __importDefault(parseStatement_2);
-    parseTerm_2 = __importDefault(parseTerm_2);
+    parseExpression_2 = __importDefault(parseExpression_2);
+    parseLogicalOr_1 = __importDefault(parseLogicalOr_1);
+    parseLogicalAnd_1 = __importDefault(parseLogicalAnd_1);
+    parseEquality_1 = __importDefault(parseEquality_1);
+    parseRelational_1 = __importDefault(parseRelational_1);
+    parseAdditive_1 = __importDefault(parseAdditive_1);
+    parseTerm_1 = __importDefault(parseTerm_1);
+    parseFactor_2 = __importDefault(parseFactor_2);
     exports.parse = parse_1.default;
-    exports.parseExpression = parseExpression_2.default;
-    exports.parseFactor = parseFactor_2.default;
-    exports.parseFunctionDeclaration = parseFunctionDeclaration_2.default;
     exports.parseProgram = parseProgram_2.default;
+    exports.parseFunctionDeclaration = parseFunctionDeclaration_2.default;
     exports.parseStatement = parseStatement_2.default;
-    exports.parseTerm = parseTerm_2.default;
+    exports.parseExpression = parseExpression_2.default;
+    exports.parseLogicalOr = parseLogicalOr_1.default;
+    exports.parseLogicalAnd = parseLogicalAnd_1.default;
+    exports.parseEquality = parseEquality_1.default;
+    exports.parseRelational = parseRelational_1.default;
+    exports.parseAdditive = parseAdditive_1.default;
+    exports.parseTerm = parseTerm_1.default;
+    exports.parseFactor = parseFactor_2.default;
 });
 //# sourceMappingURL=bundle.js.map

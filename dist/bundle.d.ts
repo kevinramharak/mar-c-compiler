@@ -11,14 +11,29 @@ declare module "Token/TokenType" {
         ADDITION,
         MULTIPLICATION,
         DIVISION,
-        BITWISE_COMPLEMENT,
+        BITWISE_NOT,
+        BITWISE_OR,
+        BITWISE_AND,
+        BITWISE_XOR,
         LOGICAL_NOT,
         LOGICAL_AND,
         LOGICAL_OR,
+        ASSIGN,
+        EQUALS,
+        NOT_EQUALS,
+        LESS_THAN,
+        LESS_OR_EQUALS,
+        GREATER_THAN,
+        GREATER_OR_EQUALS,
         KEYWORD,
         IDENTIFIER,
         INTEGER_LITERAL,
+        FLOAT_LITERAL,
         UNARY_OP,
+        ADDITIVE,
+        TERM,
+        RELATIONAL,
+        EQUALITY,
         BINARY_OP
     }
     export default TokenType;
@@ -222,10 +237,10 @@ declare module "AST/BinaryOp" {
     import { TokenStream } from "TokenStream/index";
     import Expression from "AST/Expression";
     export default class BinaryOp extends Expression {
-        readonly operator: string;
+        readonly operator: IToken;
         readonly left: Expression;
         readonly right: Expression;
-        constructor(operator: string, left: Expression, right: Expression, info?: Partial<{
+        constructor(operator: IToken, left: Expression, right: Expression, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
@@ -325,9 +340,9 @@ declare module "AST/UnaryOp" {
     import { TokenStream } from "TokenStream/index";
     import Expression from "AST/Expression";
     export default class UnaryOp extends Expression {
-        readonly operator: string;
+        readonly operator: IToken;
         readonly expression: Expression;
-        constructor(operator: string, expression: Expression, info?: Partial<{
+        constructor(operator: IToken, expression: Expression, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
@@ -355,11 +370,32 @@ declare module "Generator/Visitor" {
         visit<T = R>(node: Node, ...args: any[]): T | T[];
     }
 }
+declare module "Generator/generate" {
+    import { Node } from "AST/index";
+    export default function generate(ast: Node): string;
+}
+declare module "Generator/ILabel" {
+    export default interface ILabel {
+        label: string;
+        annotate(msg: string): string;
+        toString(): string;
+    }
+}
+declare module "Generator/index" {
+    import generate from "Generator/generate";
+    import CodeGenVisitor from "Generator/CodeGenVisitor";
+    import ILabel from "Generator/ILabel";
+    import Visitor from "Generator/Visitor";
+    export { CodeGenVisitor, ILabel, generate, Visitor, };
+}
 declare module "Generator/CodeGenVisitor" {
     import * as AST from "AST/index";
     import Visitor from "Generator/Visitor";
+    import { ILabel } from "Generator/index";
     export default class CodeGenVisitor extends Visitor<string> {
+        private labelId;
         constructor();
+        generateLabel(extra?: string): ILabel;
         visitProgram(node: AST.Program): string;
         visitFunctionDeclaration(node: AST.FunctionDeclaration): string;
         visitReturnStatement(node: AST.ReturnStatement): string;
@@ -368,14 +404,6 @@ declare module "Generator/CodeGenVisitor" {
         visitConstant(node: AST.Constant): string;
         visitIntegerConstant(node: AST.IntegerConstant): string;
     }
-}
-declare module "Generator/generate" {
-    import { Node } from "AST/index";
-    export default function generate(ast: Node): string;
-}
-declare module "Generator/index" {
-    import generate from "Generator/generate";
-    export { generate };
 }
 declare module "Lexer/keywords" {
     const keywords: string[];
@@ -390,6 +418,7 @@ declare module "Lexer/is" {
         identifierStart: (c: string) => boolean;
         keyword: (c: string) => boolean;
         octal: (c: string) => boolean;
+        integerSuffix: (c: string) => boolean;
     };
     export default is;
 }
@@ -403,16 +432,6 @@ declare module "Lexer/index" {
     import keywords from "Lexer/keywords";
     import lex from "Lexer/lex";
     export { lex, is, keywords, };
-}
-declare module "Parser/parseFactor" {
-    import { Expression } from "AST/index";
-    import { TokenStream } from "TokenStream/index";
-    export default function parseFactor(stream: TokenStream): Expression;
-}
-declare module "Parser/parseTerm" {
-    import { Expression } from "AST/index";
-    import { TokenStream } from "TokenStream/index";
-    export default function parseTerm(stream: TokenStream): Expression;
 }
 declare module "Parser/parseExpression" {
     import { Expression } from "AST/index";
@@ -440,13 +459,53 @@ declare module "Parser/parse" {
     import { TokenStream } from "TokenStream/index";
     export default function parse(stream: IToken[] | TokenStream): Node;
 }
+declare module "Parser/parseLogicalOr" {
+    import { Expression } from "AST/index";
+    import { TokenStream } from "TokenStream/index";
+    export default function parseLogicalOr(stream: TokenStream): Expression;
+}
+declare module "Parser/parseLogicalAnd" {
+    import { Expression } from "AST/index";
+    import { TokenStream } from "TokenStream/index";
+    export default function parseLogicalOr(stream: TokenStream): Expression;
+}
+declare module "Parser/parseEquality" {
+    import { Expression } from "AST/index";
+    import { TokenStream } from "TokenStream/index";
+    export default function parseLogicalOr(stream: TokenStream): Expression;
+}
+declare module "Parser/parseRelational" {
+    import { Expression } from "AST/index";
+    import { TokenStream } from "TokenStream/index";
+    export default function parseLogicalOr(stream: TokenStream): Expression;
+}
+declare module "Parser/parseAdditive" {
+    import { Expression } from "AST/index";
+    import { TokenStream } from "TokenStream/index";
+    export default function parseAdditive(stream: TokenStream): Expression;
+}
+declare module "Parser/parseFactor" {
+    import { Expression } from "AST/index";
+    import { TokenStream } from "TokenStream/index";
+    export default function parseFactor(stream: TokenStream): Expression;
+}
+declare module "Parser/parseTerm" {
+    import { Expression } from "AST/index";
+    import { TokenStream } from "TokenStream/index";
+    export default function parseTerm(stream: TokenStream): Expression;
+}
 declare module "Parser/index" {
     import parse from "Parser/parse";
-    import parseExpression from "Parser/parseExpression";
-    import parseFactor from "Parser/parseFactor";
-    import parseFunctionDeclaration from "Parser/parseFunctionDeclaration";
     import parseProgram from "Parser/parseProgram";
+    import parseFunctionDeclaration from "Parser/parseFunctionDeclaration";
     import parseStatement from "Parser/parseStatement";
+    import parseExpression from "Parser/parseExpression";
+    import parseLogicalOr from "Parser/parseLogicalOr";
+    import parseLogicalAnd from "Parser/parseLogicalAnd";
+    import parseEquality from "Parser/parseEquality";
+    import parseRelational from "Parser/parseRelational";
+    import parseAdditive from "Parser/parseAdditive";
     import parseTerm from "Parser/parseTerm";
-    export { parse, parseExpression, parseFactor, parseFunctionDeclaration, parseProgram, parseStatement, parseTerm, };
+    import parseFactor from "Parser/parseFactor";
+    export { parse, parseProgram, parseFunctionDeclaration, parseStatement, parseExpression, parseLogicalOr, parseLogicalAnd, parseEquality, parseRelational, parseAdditive, parseTerm, parseFactor, };
 }
