@@ -71,16 +71,16 @@ export default class TokenStream {
             return 'given token does not exists in stream';
         }
         // gather all tokens up to 2 lines before the passed token
-        const lines = [token.line - 1, token.line - 2, token.line].filter(line => line > 0);
+        const lines = [token.line - 2, token.line - 1, token.line].filter(line => line > 0);
         const output = lines.map((line) => {
-            return `${line}|  ` + this.tokens.filter((token) => token.line === line).reduce((str, token) => {
+            return `${line}| ` + this.tokens.filter((token) => token.line === line).reduce((str, token) => {
                 const indent = (token.col - 1) - str.length;
                 return str + ' '.repeat((indent >= 0) ? indent : 0) + token.lexeme;
             }, '');
         })
         
         // insert big arrow to faulty token
-        const prefix = ' '.repeat(token.line.toString().length) + '   ';
+        const prefix = ' '.repeat(token.line.toString().length) + '  ';
         const extra = ' '.repeat(token.col - 1) + '^'.repeat(token.lexeme.length);
         output.push(prefix + extra + '\n' + message);
         
