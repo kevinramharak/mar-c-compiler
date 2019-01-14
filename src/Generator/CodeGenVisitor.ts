@@ -46,17 +46,18 @@ ${node.name}:
         switch (node.operator.type) {
             case TokenType.MULTIPLICATION:
                 asm += '  MUL B'
+                asm += '\n';
                 break;
             case TokenType.DIVISION:
                 // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
                 asm += '  MOV Y, 0\n';
-                asm += '  DIV B';
+                asm += '  DIV B\n';
                 break;
             case TokenType.ADDITION:
-                asm += '  ADD A, B';
+                asm += '  ADD A, B\n';
                 break;
             case TokenType.NEGATION:
-                asm += '  SUB A, B';
+                asm += '  SUB A, B\n';
                 break;
             case TokenType.NOT_EQUALS: {
                 const label = this.generateLabel('not_equals');
@@ -89,19 +90,93 @@ ${endLabel}:
                 break;
             }
             case TokenType.LESS_THAN: {
-
+                const label = this.generateLabel('less_than');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JL ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
             }
             case TokenType.LESS_OR_EQUALS: {
-
+                const label = this.generateLabel('less_or_equals');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JLE ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
             }
             case TokenType.GREATER_THAN: {
-
+                const label = this.generateLabel('greater_than');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JG ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
             }
             case TokenType.GREATER_OR_EQUALS: {
-                
+                const label = this.generateLabel('greater_or_equals');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JGE ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+            }
+            case TokenType.LOGICAL_OR: {
+                const label = this.generateLabel('logical_or');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  OR A, B
+  JNZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+            }
+            case TokenType.LOGICAL_AND: {
+                const label = this.generateLabel('logical_and');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `
+  CMP A, 0
+  JNZ ${trueLabel}
+  CMP B, 0
+  JNZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                break;
             }
         }
-        asm += '\n';
         return asm as string;
     }
 
@@ -120,13 +195,13 @@ ${endLabel}:
 ${trueLabel}:
   MOV A, 1
 ${endLabel}:
-`
+`;
                 break;
             }
             case TokenType.BITWISE_NOT:
                 asm += `\
   NOT A
-`
+`;
             break;
             case TokenType.NEGATION:
                 asm += `\
@@ -144,6 +219,6 @@ ${endLabel}:
     public visitIntegerConstant(node: AST.IntegerConstant): string {
         return `\
   MOV A, ${node.value}
-`
+`;
     }
 }
