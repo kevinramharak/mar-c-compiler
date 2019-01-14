@@ -89,16 +89,60 @@ ${endLabel}:
                 break;
             }
             case TokenType.LESS_THAN: {
-
+                const label = this.generateLabel('less_than');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JL ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
             }
             case TokenType.LESS_OR_EQUALS: {
-
+                const label = this.generateLabel('less_or_equals');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JLE ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
             }
             case TokenType.GREATER_THAN: {
-
+                const label = this.generateLabel('greater_than');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JG ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
             }
             case TokenType.GREATER_OR_EQUALS: {
-                
+                const label = this.generateLabel('greater_or_equals');
+                const trueLabel = label.annotate('true');
+                const endLabel = label.annotate('end');
+                asm += `\
+  CMP A, B
+  JGE ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
             }
         }
         asm += '\n';
