@@ -333,15 +333,15 @@ define("TokenStream/TokenStream", ["require", "exports", "TokenStream/splitToken
                 return 'given token does not exists in stream';
             }
             // gather all tokens up to 2 lines before the passed token
-            const lines = [token.line - 1, token.line - 2, token.line].filter(line => line > 0);
+            const lines = [token.line - 2, token.line - 1, token.line].filter(line => line > 0);
             const output = lines.map((line) => {
-                return `${line}|  ` + this.tokens.filter((token) => token.line === line).reduce((str, token) => {
+                return `${line}| ` + this.tokens.filter((token) => token.line === line).reduce((str, token) => {
                     const indent = (token.col - 1) - str.length;
                     return str + ' '.repeat((indent >= 0) ? indent : 0) + token.lexeme;
                 }, '');
             });
             // insert big arrow to faulty token
-            const prefix = ' '.repeat(token.line.toString().length) + '   ';
+            const prefix = ' '.repeat(token.line.toString().length) + '  ';
             const extra = ' '.repeat(token.col - 1) + '^'.repeat(token.lexeme.length);
             output.push(prefix + extra + '\n' + message);
             return output.join('\n');
@@ -634,17 +634,18 @@ ${node.name}:
             switch (node.operator.type) {
                 case Token_4.TokenType.MULTIPLICATION:
                     asm += '  MUL B';
+                    asm += '\n';
                     break;
                 case Token_4.TokenType.DIVISION:
                     // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
                     asm += '  MOV Y, 0\n';
-                    asm += '  DIV B';
+                    asm += '  DIV B\n';
                     break;
                 case Token_4.TokenType.ADDITION:
-                    asm += '  ADD A, B';
+                    asm += '  ADD A, B\n';
                     break;
                 case Token_4.TokenType.NEGATION:
-                    asm += '  SUB A, B';
+                    asm += '  SUB A, B\n';
                     break;
                 case Token_4.TokenType.NOT_EQUALS: {
                     const label = this.generateLabel('not_equals');
@@ -677,15 +678,93 @@ ${endLabel}:
                     break;
                 }
                 case Token_4.TokenType.LESS_THAN: {
+                    const label = this.generateLabel('less_than');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  CMP A, B
+  JL ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
                 }
                 case Token_4.TokenType.LESS_OR_EQUALS: {
+                    const label = this.generateLabel('less_or_equals');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  CMP A, B
+  JLE ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
                 }
                 case Token_4.TokenType.GREATER_THAN: {
+                    const label = this.generateLabel('greater_than');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  CMP A, B
+  JG ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
                 }
                 case Token_4.TokenType.GREATER_OR_EQUALS: {
+                    const label = this.generateLabel('greater_or_equals');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  CMP A, B
+  JGE ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                }
+                case Token_4.TokenType.LOGICAL_OR: {
+                    const label = this.generateLabel('logical_or');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `\
+  OR A, B
+  JNZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                }
+                case Token_4.TokenType.LOGICAL_AND: {
+                    const label = this.generateLabel('logical_and');
+                    const trueLabel = label.annotate('true');
+                    const endLabel = label.annotate('end');
+                    asm += `
+  CMP A, 0
+  JNZ ${trueLabel}
+  CMP B, 0
+  JNZ ${trueLabel}
+  MOV A, 0
+  JMP ${endLabel}
+${trueLabel}:
+  MOV A, 1
+${endLabel}:
+`;
+                    break;
                 }
             }
-            asm += '\n';
             return asm;
         }
         visitUnaryOp(node) {
