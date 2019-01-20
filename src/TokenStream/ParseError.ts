@@ -1,4 +1,5 @@
-import { IToken } from "src/Token";
+import { IToken } from "../Token";
+
 import TokenStream from "./TokenStream";
 
 export default class ParseError extends Error {

@@ -1,13 +1,24 @@
-import * as AST from '../AST';
-import Visitor from './Visitor';
 import { TokenType } from '../Token';
 import { ILabel } from '.';
+import * as AST from '../AST';
+
+import Visitor from './Visitor';
 
 export default class CodeGenVisitor extends Visitor<string> {
     private labelId = 0;
 
     constructor() {
         super()
+    }
+
+    public visit(node: AST.INode): string {
+        const type = Object.prototype.toString.call(node).slice(8, -1);
+        const visitor = (this as any)['visit' + type] as ((node: AST.INode, ...args: any[]) => string) | undefined;
+        if (typeof visitor !== 'undefined') {
+            return visitor(node);
+        } else {
+            return node.accept(this);
+        }
     }
 
     public generateLabel(extra: string = ''): ILabel {

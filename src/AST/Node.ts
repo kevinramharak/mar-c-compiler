@@ -1,7 +1,8 @@
-import { IToken } from "src/Token";
-import { TokenStream } from "src/TokenStream";
-import INode from "./INode";
+import { IToken } from "../Token";
+import { TokenStream } from "../TokenStream";
 import { IVisitor } from '../Generator';
+
+import INode from "./INode";
 
 export default class Node implements INode {
     public readonly token?: IToken;
