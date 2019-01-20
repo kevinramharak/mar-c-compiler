@@ -1,10 +1,11 @@
-import { IToken } from "src/Token";
-import { TokenStream } from "src/TokenStream";
+import { IToken } from "../Token";
+import { TokenStream } from "../TokenStream";
+import { IVisitor } from "../Generator";
 
 export default interface INode {
-    children: INode[];
     token?: IToken;
     stream?: TokenStream;
+    accept<T>(visitor: IVisitor<T>): T; 
     friendlyError(message: string): string;
     [Symbol.toStringTag]: string;
 }
