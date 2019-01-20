@@ -34,9 +34,9 @@ ${node.name}:
 `;
     }
 
-    // no ret but brk if function is main, or some custom exit function to wrap the brk instruction
     public visitReturnStatement(node: AST.ReturnStatement) {
         this.text += `\
+  POP A
   ret
 `;
     }
