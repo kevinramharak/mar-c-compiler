@@ -63,14 +63,14 @@ ${node.name}:
     public visitVariableReference(node: AST.VariableReference) {
         const offset = this.stackFrame.get(node.name);
         this.text += `\
-  PUSH [BP + ${offset}] ; '${node.name}'
+  PUSH [BP - ${offset}] ; '${node.name}'
 `;
     }
 
     public visitAssignment(node: AST.Assignment) {
         const offset = this.stackFrame.get(node.name);
         this.text += `\
-  POP [BP + ${offset}], A ; '${node.name}' = <expr>
+  POP [BP - ${offset}], A ; '${node.name}' = <expr>
 `
     }
 

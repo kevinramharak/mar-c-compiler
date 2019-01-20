@@ -19,8 +19,8 @@ export default class StackFrame {
         if (this.dict.has(key)) {
             throw new CompilerError(`Variable already declared: '${key}'`)
         }
-        this.dict.set(key, this.index);
-        return this.index++;
+        this.dict.set(key, ++this.index);
+        return this.index;
     }
 
     public exists(key: string): boolean {
