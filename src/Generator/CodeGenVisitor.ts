@@ -1,8 +1,9 @@
-import { TokenType } from '../Token';
-import { ILabel } from '.';
 import * as AST from '../AST';
+import { TokenType } from '../Token';
+import { Visitor } from '../Visitor';
 
-import Visitor from './Visitor';
+
+import ILabel from './ILabel';
 
 export default class CodeGenVisitor extends Visitor<string> {
     private labelId = 0;

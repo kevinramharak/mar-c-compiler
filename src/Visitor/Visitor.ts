@@ -1,5 +1,6 @@
 import { INode } from '../AST';
-import { IVisitor } from '.';
+
+import IVisitor from './IVisitor';
 
 export default class Visitor<T = string> implements IVisitor<T> {
     constructor() {
