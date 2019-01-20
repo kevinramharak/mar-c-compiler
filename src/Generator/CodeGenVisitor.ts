@@ -72,6 +72,15 @@ ${node.name}:
                 asm += '  SUB A, B\n';
                 break;
             }
+            case TokenType.BITWISE_AND: {
+                asm += '  AND A, B\n';
+            }
+            case TokenType.BITWISE_OR: {
+                asm += '  OR A, B\n';
+            }
+            case TokenType.BITWISE_XOR: {
+                asm += '  XOR A, B\n';
+            }
             case TokenType.NOT_EQUALS: {
                 const label = this.generateLabel('not_equals');
                 const trueLabel = label.annotate('true');
