@@ -5,7 +5,7 @@ import Expression from './Expression';
 import IConstant from './IConstant';
 
 export default class Constant<T = any> extends Expression implements IConstant<T> {
-    constructor(public type: string, public readonly value: T, info: Partial<{token: IToken, stream: TokenStream}> = {}) {
+    constructor(public type: string, public  value: T, info: Partial<{token: IToken, stream: TokenStream}> = {}) {
         super(info);
     }
     

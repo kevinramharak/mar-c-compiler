@@ -5,7 +5,7 @@ import { IVisitor } from '../Generator';
 import Expression from './Expression';
 
 export default class UnaryOp extends Expression {
-    constructor(public readonly operator: IToken, public readonly expression: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
+    constructor(public  operator: IToken, public  expression: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         super(info);
     }
 

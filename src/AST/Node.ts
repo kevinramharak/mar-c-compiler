@@ -5,8 +5,8 @@ import { IVisitor } from '../Generator';
 import INode from "./INode";
 
 export default class Node implements INode {
-    public readonly token?: IToken;
-    public readonly stream?: TokenStream;
+    public  token?: IToken;
+    public  stream?: TokenStream;
     
     constructor(info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         this.token = info.token;
