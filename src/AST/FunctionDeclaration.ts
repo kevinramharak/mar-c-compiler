@@ -6,13 +6,13 @@ import Node from './Node';
 import Statement from './Statement';
 
 export default class FunctionDeclaration extends Node {
-    constructor(public type: string, public  name: string, public  statement: Statement, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
+    constructor(public type: string, public name: string, public statements: Statement[], info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         super(info);
     }
     
     public accept(visitor: IVisitor) {
         visitor.visit(this);
-        this.statement.accept(visitor);
+        this.statements.forEach(statement => statement.accept(visitor));
     }
 
     public get [Symbol.toStringTag](): string {

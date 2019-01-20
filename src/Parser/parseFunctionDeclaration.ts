@@ -1,4 +1,4 @@
-import { FunctionDeclaration } from '../AST';
+import { FunctionDeclaration, Statement } from '../AST';
 import { IToken, Token, TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
@@ -12,7 +12,12 @@ export default function parseFunctionDeclaration(
     stream.expect(TokenType.LEFT_PAREN);
     stream.expect(TokenType.RIGHT_PAREN);
     stream.expect(TokenType.LEFT_BRACE);
-    const statement = parseStatement(stream);
+
+    const statements: Statement[] = [];
+    while (stream.peek().type !== TokenType.RIGHT_BRACE) {
+        const statement = parseStatement(stream);
+        statements.push(statement);
+    }
     stream.expect(TokenType.RIGHT_BRACE);
-    return new FunctionDeclaration(type.lexeme, identifier.lexeme, statement, { token: type, stream });
+    return new FunctionDeclaration(type.lexeme, identifier.lexeme, statements, { token: type, stream });
 };
