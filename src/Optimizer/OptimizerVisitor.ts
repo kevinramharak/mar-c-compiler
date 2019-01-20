@@ -13,12 +13,12 @@ export default class OptimizerVisitor extends Visitor {
         }
     }
 
-    public visitBinaryOp(node: BinaryOp) {
+    public visitBinaryOrp(node: BinaryOp) {
         if (node.left instanceof BinaryOp) {
-            node.left = this.evaluateBinaryOp(node.left);
+            node.left = this.evaluateBinaryOp(node.left as BinaryOp);
         }
         if (node.right instanceof BinaryOp) {
-            node.right = this.evaluateBinaryOp(node.right);
+            node.right = this.evaluateBinaryOp(node.right as BinaryOp);
         }
     }
 
