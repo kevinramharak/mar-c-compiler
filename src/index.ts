@@ -3,7 +3,15 @@ import { defaultOptions } from './Options';
 
 export function main(...args: string[]): number {
     if (args.length > 0) {
-        const result = pipeline(args[0], defaultOptions, args[1]);
+        const options = defaultOptions;
+
+        const optimizeFlagIndex = args.indexOf('-O');
+        if (optimizeFlagIndex !== -1) {
+            options.optimize = true;
+            args.splice(optimizeFlagIndex, 1);
+        }
+
+        const result = pipeline(args[0], options, args[1]);
 
         if (result.error) {
             console.error(`${result.error}`);
