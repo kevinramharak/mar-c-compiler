@@ -68,7 +68,7 @@ export default class TokenStream {
      */
     public friendlyError(token: IToken, message: string): string {
         if (this.tokens.indexOf(token) === -1) {
-            return 'given token does not exists in stream';
+            return 'given token does not exist in stream';
         }
         // gather all tokens up to 2 lines before the passed token
         const lines = [token.line - 2, token.line - 1, token.line].filter(line => line > 0);
