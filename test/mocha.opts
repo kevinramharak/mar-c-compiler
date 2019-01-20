@@ -4,5 +4,3 @@
 --ui mocha-typescript
 
 ./test/index.ts
---recursive ./test/Compiler/*.spec.ts
-#--recursive ./test/Stages/*.spec.ts
