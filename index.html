@@ -141,6 +141,7 @@ int main() {
                 $optimize.checked = options.optimize;
                 $optimize.onchange = e => {
                     options.optimize = e.target.checked;
+                    $output.innerHTML = compile($input.value);
                 }
 
                 $compile.onclick = e => {
