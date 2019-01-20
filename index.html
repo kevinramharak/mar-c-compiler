@@ -148,7 +148,7 @@ int main() {
                 };
 
                 let id = null;
-                $input.onchange = e => {
+                $input.oninput = e => {
                     if (id !== null) {
                         clearTimeout(id);
                     }
