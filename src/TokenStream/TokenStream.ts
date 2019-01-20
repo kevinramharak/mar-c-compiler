@@ -34,8 +34,8 @@ export default class TokenStream {
         return this.index === this.tokens.length;
     }
 
-    public peek(): IToken {
-        return this.tokens[this.index] || this.EOFToken;
+    public peek(offset = 0): IToken {
+        return this.tokens[this.index + offset] || this.EOFToken;
     }
 
     public next(): IToken {

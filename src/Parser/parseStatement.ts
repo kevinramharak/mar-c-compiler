@@ -16,6 +16,7 @@ export default function parseStatement(
             const name = stream.expect(TokenType.IDENTIFIER);
             let expression;
             if (stream.peek().type != TokenType.SEMI_COLON) {
+                stream.expect(TokenType.ASSIGN);
                 expression = parseExpression(stream);
             }
             statement = new Declaration(name.lexeme, expression);
