@@ -47,21 +47,31 @@ ${node.name}:
   POP B
 `;
         switch (node.operator.type) {
-            case TokenType.MULTIPLICATION:
+            case TokenType.MULTIPLICATION: {
                 asm += '  MUL B'
                 asm += '\n';
                 break;
-            case TokenType.DIVISION:
-                // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
+            }
+            // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
+            case TokenType.DIVISION: {
                 asm += '  MOV Y, 0\n';
                 asm += '  DIV B\n';
                 break;
-            case TokenType.ADDITION:
+            }
+            // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
+            case TokenType.MODULO: {
+                asm += '  MOV Y, 0\n';
+                asm += '  DIV B\n';
+                asm += '  MOV A, Y\n';
+            }
+            case TokenType.ADDITION: {
                 asm += '  ADD A, B\n';
                 break;
-            case TokenType.NEGATION:
+            }
+            case TokenType.NEGATION: {
                 asm += '  SUB A, B\n';
                 break;
+            }
             case TokenType.NOT_EQUALS: {
                 const label = this.generateLabel('not_equals');
                 const trueLabel = label.annotate('true');
