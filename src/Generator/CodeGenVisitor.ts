@@ -51,7 +51,7 @@ ${node.name}:
         this.stackFrame.set(node.name);
         if (node.expression) {
             this.text += `\
-; var '${node.name}' = <exp>
+; var '${node.name}' = <expr>
 `
         } else {
             this.text += `\
@@ -63,8 +63,15 @@ ${node.name}:
     public visitVariableReference(node: AST.VariableReference) {
         const offset = this.stackFrame.get(node.name);
         this.text += `\
-  MOV A, [BP + ${offset}] ; '${node.name}'
+  PUSH [BP + ${offset}] ; '${node.name}'
 `;
+    }
+
+    public visitAssignment(node: AST.Assignment) {
+        const offset = this.stackFrame.get(node.name);
+        this.text += `\
+  POP A, [BP + ${offset}] ; '${node.name}' = <expr>
+`
     }
 
     public visitBinaryOp(node: AST.BinaryOp) {
