@@ -761,7 +761,7 @@ ${node.name}:
             this.stackFrame.set(node.name);
             if (node.expression) {
                 this.text += `\
-; var '${node.name}' = <exp>
+; var '${node.name}' = <expr>
 `;
             }
             else {
@@ -773,7 +773,13 @@ ${node.name}:
         visitVariableReference(node) {
             const offset = this.stackFrame.get(node.name);
             this.text += `\
-  MOV A, [BP + ${offset}] ; '${node.name}'
+  PUSH [BP + ${offset}] ; '${node.name}'
+`;
+        }
+        visitAssignment(node) {
+            const offset = this.stackFrame.get(node.name);
+            this.text += `\
+  POP A, [BP + ${offset}] ; '${node.name}' = <expr>
 `;
         }
         visitBinaryOp(node) {

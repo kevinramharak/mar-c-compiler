@@ -493,6 +493,7 @@ declare module "Generator/CodeGenVisitor" {
         visitReturnStatement(node: AST.ReturnStatement): void;
         visitDeclaration(node: AST.Declaration): void;
         visitVariableReference(node: AST.VariableReference): void;
+        visitAssignment(node: AST.Assignment): void;
         visitBinaryOp(node: AST.BinaryOp): void;
         visitUnaryOp(node: AST.UnaryOp): void;
         visitIntegerConstant(node: AST.IntegerConstant): void;
