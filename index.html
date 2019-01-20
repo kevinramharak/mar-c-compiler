@@ -76,7 +76,7 @@ $identifier $identifier() {
         </header>
         <section>
             <button id="compile" name="compile">Compile</button>
-            <input type="checkbox" id="optimize" name="optimize" />
+            <input type="checkbox" id="optimize" name="optimize"/>
             <label for="optimize">Enable (really basic) optimization</label>
         </section>
         <section>
@@ -103,9 +103,10 @@ $identifier $identifier() {
                 'Options/index',
                 'Error/index',
             ], function(Lexer, Parser, Generator, Optimizer, Options, Error) {
-                console.log(arguments);
                 const $ = document.querySelector.bind(document);
-                const options = Options.defaultOptions;
+                const options = Object.assigN(Options.defaultOptions, {
+                    optimize: true
+                });
                 const compile = window.compile = (input) => {
                     try {
                         const tokens = Lexer.lex(input);
@@ -137,14 +138,25 @@ int main() {
                 const $compile = $('#compile');
                 const $optimize = $('#optimize');
                 
-                $optimize.value = options.optimize;
+                $optimize.checked = options.optimize;
                 $optimize.onchange = e => {
-                    options.optimize = e.target.value;
+                    options.optimize = e.target.checked;
                 }
 
                 $compile.onclick = e => {
                     $output.innerHTML = compile($input.value);
                 };
+
+                let id = null;
+                $input.onchange = e => {
+                    if (id !== null) {
+                        clearTimeout(id);
+                    }
+                    id = setTimeout(() => {
+                        $output.innerHTML = compile(e.target.value);
+                        id = null;
+                    }, 500);
+                }
 
                 $input.innerHTML = sample;
                 $output.innerHTML = compile(sample);
