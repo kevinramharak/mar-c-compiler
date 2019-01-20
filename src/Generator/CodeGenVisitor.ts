@@ -216,7 +216,7 @@ ${endLabel}:
 `;
                 break;
         }
-        asm += ' PUSH A\n';
+        asm += '  PUSH A\n';
         this.text += asm;
     }
 
