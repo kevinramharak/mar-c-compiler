@@ -134,8 +134,13 @@ $identifier $identifier() {
                         }
                     }
                 }
+
+                let stored;
+                if (localStorage) {
+                    stored = localStorage.getItem('assembly');
+                }
                 
-                const sample = `\
+                const sample = stored || `\
 int main() {
     return 23 / (2 * (15 / (9 / 3))) + ~47 - -100;
 }
@@ -162,6 +167,9 @@ int main() {
                         clearTimeout(id);
                     }
                     id = setTimeout(() => {
+                        if (localStorage) {
+                            localStorage.setItem('assembly', e.target.value);
+                        }
                         $output.innerHTML = compile(e.target.value);
                         id = null;
                     }, 500);
