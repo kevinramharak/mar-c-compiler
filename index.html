@@ -66,11 +66,19 @@ $identifier $identifier() {
             <p>
                 <pre><code>
 &lt;program&gt; ::= &lt;function&gt;
-&lt;function&gt; ::= &quot;int&quot; &lt;id&gt; &quot;(&quot; &quot;)&quot; &quot;{&quot; &lt;statement&gt; &quot;}&quot;
+&lt;function&gt; ::= &quot;int&quot; &lt;id&gt; &quot;(&quot; &quot;)&quot; &quot;{&quot; { &lt;statement&gt; } &quot;}&quot;
 &lt;statement&gt; ::= &quot;return&quot; &lt;exp&gt; &quot;;&quot;
-&lt;exp&gt; ::= &lt;term&gt; { (&quot;+&quot; | &quot;-&quot;) &lt;term&gt; }
+                | &lt;exp&gt; &quot;;&quot;
+                | &quot;int&quot; &lt;id&gt; [ = &lt;exp&gt;] &quot;;&quot; 
+&lt;exp&gt; ::= &lt;id&gt; &quot;=&quot; &lt;exp&gt; | &lt;logical-or-exp&gt;
+&lt;logical-or-exp&gt; ::= &lt;logical-and-exp&gt; { &quot;||&quot; &lt;logical-and-exp&gt; } 
+&lt;logical-and-exp&gt; ::= &lt;equality-exp&gt; { &quot;&amp;&amp;&quot; &lt;equality-exp&gt; }
+&lt;equality-exp&gt; ::= &lt;relational-exp&gt; { (&quot;!=&quot; | &quot;==&quot;) &lt;relational-exp&gt; }
+&lt;relational-exp&gt; ::= &lt;additive-exp&gt; { (&quot;&lt;&quot; | &quot;&gt;&quot; | &quot;&lt;=&quot; | &quot;&gt;=&quot;) &lt;additive-exp&gt; }
+&lt;additive-exp&gt; ::= &lt;term&gt; { (&quot;+&quot; | &quot;-&quot;) &lt;term&gt; }
 &lt;term&gt; ::= &lt;factor&gt; { (&quot;*&quot; | &quot;/&quot;) &lt;factor&gt; }
-&lt;factor&gt; ::= &quot;(&quot; &lt;exp&gt; &quot;)&quot; | &lt;unary_op&gt; &lt;factor&gt; | &lt;int&gt;
+&lt;factor&gt; ::= &quot;(&quot; &lt;exp&gt; &quot;)&quot; | &lt;unary_op&gt; &lt;factor&gt; | &lt;int&gt; | &lt;id&gt;
+&lt;unary_op&gt; ::= &quot;!&quot; | &quot;~&quot; | &quot;-&quot;
                 </code></pre>
             </p>
         </header>

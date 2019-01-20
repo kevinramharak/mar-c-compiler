@@ -4,10 +4,12 @@ import { Visitor } from '../Visitor';
 
 
 import ILabel from './ILabel';
+import StackFrame from './StackFrame';
 
 export default class CodeGenVisitor extends Visitor<string> {
     private labelId = 0;
     private text = '';
+    private stackFrame = new StackFrame();
 
     constructor() {
         super()
@@ -31,13 +33,37 @@ export default class CodeGenVisitor extends Visitor<string> {
     public visitFunctionDeclaration(node: AST.FunctionDeclaration) {
         this.text += `\
 ${node.name}:
+  PUSH BP
+  MOV BP, SP
 `;
     }
 
     public visitReturnStatement(node: AST.ReturnStatement) {
         this.text += `\
   POP A
+  MOV SP, BP
+  POP BP
   ret
+`;
+    }
+
+    public visitDeclaration(node: AST.Declaration) {
+        this.stackFrame.set(node.name);
+        if (node.expression) {
+            this.text += `\
+; var '${node.name}' = <exp>
+`
+        } else {
+            this.text += `\
+  PUSH 0 ; var '${node.name}'
+`;
+        }
+    }
+
+    public visitVariableReference(node: AST.VariableReference) {
+        const offset = this.stackFrame.get(node.name);
+        this.text += `\
+  MOV A, [BP + ${offset}] ; '${node.name}'
 `;
     }
 
@@ -47,21 +73,40 @@ ${node.name}:
   POP B
 `;
         switch (node.operator.type) {
-            case TokenType.MULTIPLICATION:
+            case TokenType.MULTIPLICATION: {
                 asm += '  MUL B'
                 asm += '\n';
                 break;
-            case TokenType.DIVISION:
-                // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
+            }
+            // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
+            case TokenType.DIVISION: {
                 asm += '  MOV Y, 0\n';
                 asm += '  DIV B\n';
                 break;
-            case TokenType.ADDITION:
+            }
+            // see https://github.com/simon987/Much-Assembly-Required/wiki/Instruction-Set#div
+            case TokenType.MODULO: {
+                asm += '  MOV Y, 0\n';
+                asm += '  DIV B\n';
+                asm += '  MOV A, Y\n';
+            }
+            case TokenType.ADDITION: {
                 asm += '  ADD A, B\n';
                 break;
-            case TokenType.NEGATION:
+            }
+            case TokenType.NEGATION: {
                 asm += '  SUB A, B\n';
                 break;
+            }
+            case TokenType.BITWISE_AND: {
+                asm += '  AND A, B\n';
+            }
+            case TokenType.BITWISE_OR: {
+                asm += '  OR A, B\n';
+            }
+            case TokenType.BITWISE_XOR: {
+                asm += '  XOR A, B\n';
+            }
             case TokenType.NOT_EQUALS: {
                 const label = this.generateLabel('not_equals');
                 const trueLabel = label.annotate('true');

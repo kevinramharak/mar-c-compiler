@@ -34,8 +34,8 @@ export default class TokenStream {
         return this.index === this.tokens.length;
     }
 
-    public peek(): IToken {
-        return this.tokens[this.index] || this.EOFToken;
+    public peek(offset = 0): IToken {
+        return this.tokens[this.index + offset] || this.EOFToken;
     }
 
     public next(): IToken {
@@ -68,7 +68,7 @@ export default class TokenStream {
      */
     public friendlyError(token: IToken, message: string): string {
         if (this.tokens.indexOf(token) === -1) {
-            return 'given token does not exists in stream';
+            return 'given token does not exist in stream';
         }
         // gather all tokens up to 2 lines before the passed token
         const lines = [token.line - 2, token.line - 1, token.line].filter(line => line > 0);

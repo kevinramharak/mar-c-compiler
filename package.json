@@ -7,8 +7,9 @@
         "clean": "rm -rf ./build/*",
         "lint": "tslint --fix --project .",
         "build": "tsc",
-        "test": "mocha",
-        "samples": "mocha --grep Stage",
+        "test-all": "mocha test && mocha samples",
+        "test": "mocha --recursive ./test/Compiler/*.spec.ts",
+        "samples": "mocha --recursive ./test/Stages/*.spec.ts",
         "prerun": "npm run build",
         "watch": "tsc --watch"
     },
