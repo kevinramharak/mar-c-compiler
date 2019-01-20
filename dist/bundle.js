@@ -779,7 +779,7 @@ ${node.name}:
         visitAssignment(node) {
             const offset = this.stackFrame.get(node.name);
             this.text += `\
-  POP A, [BP + ${offset}] ; '${node.name}' = <expr>
+  POP [BP + ${offset}], A ; '${node.name}' = <expr>
 `;
         }
         visitBinaryOp(node) {
