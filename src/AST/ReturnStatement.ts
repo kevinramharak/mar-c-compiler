@@ -1,6 +1,6 @@
 import { IToken } from '../Token';
 import { TokenStream } from '../TokenStream';
-import { IVisitor } from '../Generator';
+import { IVisitor } from '../Visitor';
 
 import Expression from './Expression';
 import Statement from './Statement';
