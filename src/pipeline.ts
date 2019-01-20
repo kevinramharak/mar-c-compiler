@@ -5,7 +5,7 @@ import { CompilerError } from './Error';
 import { generate } from './Generator';
 import { lex } from './Lexer';
 import { parse } from './Parser';
-import { optimizer } from './Optimizer';
+import { optimize } from './Optimizer';
 
 import fs from 'fs';
 
@@ -16,7 +16,7 @@ export default function pipeline(filename: string, options: IOptions, output?: s
         let ast = parse(tokens);
 
         if (options.optimize) {
-            ast = optimizer(ast);
+            ast = optimize(ast);
         }
 
         const asm = generate(ast);
