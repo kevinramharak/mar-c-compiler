@@ -75,6 +75,11 @@ $identifier $identifier() {
             </p>
         </header>
         <section>
+            <button id="compile" name="compile">Compile</button>
+            <input type="checkbox" id="optimize" name="optimize" />
+            <label for="optimize">Enable (really basic) optimization</label>
+        </section>
+        <section>
             <textarea id="input"></textarea>
             <pre id="output-wrapper"><code id="output"></code></pre>
         </section>
@@ -94,30 +99,55 @@ $identifier $identifier() {
                 'Lexer/index',
                 'Parser/index',
                 'Generator/index',
-            ], function(Lexer, Parser, Generator) {
+                'Optimizer/index',
+                'Options/index',
+                'Error/index',
+            ], function(Lexer, Parser, Generator, Optimizer, Options, Error) {
+                console.log(arguments);
                 const $ = document.querySelector.bind(document);
+                const options = Options.defaultOptions;
                 const compile = window.compile = (input) => {
                     try {
                         const tokens = Lexer.lex(input);
-                        const ast = Parser.parse(tokens);
+                        let ast = Parser.parse(tokens);
+
+                        if (options.optimize) {
+                            ast = Optimizer.optimize(ast);
+                        }
+
                         const asm = Generator.generate(ast);
                         return asm;
                     } catch (e) {
-                        return e.message + '\n' + e.details;
+                        if (e instanceof Error.CompilerError) {
+                            return e.message + '\n' + e.details;
+                        } else {
+                            throw e;
+                        }
                     }
                 }
-
-                $('#input').oninput = e => {
-                    $('#output').innerHTML = compile(e.target.value);
-                };
-
+                
                 const sample = `\
 int main() {
     return 23 / (2 * (15 / (9 / 3))) + ~47 - -100;
 }
 `;
-                $('#input').innerHTML = sample;
-                $('#output').innerHTML = compile(sample);
+
+                const $input = $('#input');
+                const $output = $('#output');
+                const $compile = $('#compile');
+                const $optimize = $('#optimize');
+                
+                $optimize.value = options.optimize;
+                $optimize.onchange = e => {
+                    options.optimize = e.target.value;
+                }
+
+                $compile.onclick = e => {
+                    $output.innerHTML = compile($input.value);
+                };
+
+                $input.innerHTML = sample;
+                $output.innerHTML = compile(sample);
             });
         </script>
     </body>
