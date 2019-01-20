@@ -96,6 +96,7 @@ ${node.name}:
                 asm += '  MOV Y, 0\n';
                 asm += '  DIV B\n';
                 asm += '  MOV A, Y\n';
+                break;
             }
             case TokenType.ADDITION: {
                 asm += '  ADD A, B\n';
