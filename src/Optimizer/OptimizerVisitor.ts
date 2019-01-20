@@ -1,4 +1,4 @@
-import { BinaryOp, Expression, IntegerConstant, ReturnStatement } from '../ASt';
+import { BinaryOp, Expression, IntegerConstant, ReturnStatement } from '../AST';
 import { TokenType } from '../Token';
 import { Visitor } from '../Visitor';
 
@@ -8,7 +8,7 @@ export default class OptimizerVisitor extends Visitor {
     }
 
     public visitReturnStatement(node: ReturnStatement) {
-        if (node.nodeType === 'BinaryOp') {
+        if (node.expression instanceof BinaryOp) {
             node.expression = this.evaluateBinaryOp(node.expression as BinaryOp);
         }
     }
