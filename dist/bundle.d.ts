@@ -472,11 +472,14 @@ declare module "Lexer/index" {
     export { lex, is, keywords, };
 }
 declare module "Optimizer/OptimizerVisitor" {
-    import { BinaryOp, Expression, ReturnStatement } from "AST/index";
+    import { BinaryOp, Expression, INode, UnaryOp } from "AST/index";
     import { Visitor } from "Visitor/index";
-    export default class OptimizerVisitor extends Visitor {
+    export default class OptimizerVisitor extends Visitor<INode> {
+        private ast;
+        readonly result: INode;
         constructor();
-        visitReturnStatement(node: ReturnStatement): void;
+        visit(node: INode): void;
+        evaluateUnaryOp(node: UnaryOp): Expression;
         evaluateBinaryOp(node: BinaryOp): Expression;
     }
 }

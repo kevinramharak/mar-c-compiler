@@ -1058,18 +1058,81 @@ define("Optimizer/OptimizerVisitor", ["require", "exports", "AST/index", "Token/
     class OptimizerVisitor extends Visitor_3.Visitor {
         constructor() {
             super();
+            this.ast = new AST_1.Node;
         }
-        visitReturnStatement(node) {
-            if (node.expression instanceof AST_1.BinaryOp) {
-                node.expression = this.evaluateBinaryOp(node.expression);
+        get result() {
+            return this.ast;
+        }
+        visit(node) {
+            for (const prop in node) {
+                const ref = node[prop];
+                console.log(prop, ref);
+                if (!(ref instanceof AST_1.Node)) {
+                    continue;
+                }
+                if (ref instanceof AST_1.BinaryOp) {
+                    node[prop] = this.evaluateBinaryOp(ref);
+                }
+                else if (ref instanceof AST_1.UnaryOp) {
+                    node[prop] = this.evaluateUnaryOp(ref);
+                }
             }
+            super.visit(node);
+        }
+        evaluateUnaryOp(node) {
+            if ((node.expression instanceof AST_1.IntegerConstant)) {
+                switch (node.operator.type) {
+                    case Token_6.TokenType.NEGATION: {
+                        const value = -(node.expression.value);
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.BITWISE_NOT: {
+                        const value = ~(node.expression.value);
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.LOGICAL_NOT: {
+                        const value = (node.expression.value) ? 1 : 0;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                }
+            }
+            return node;
         }
         evaluateBinaryOp(node) {
             if ((node.left instanceof AST_1.IntegerConstant) && (node.right instanceof AST_1.IntegerConstant)) {
                 switch (node.operator.type) {
                     case Token_6.TokenType.ADDITION: {
                         const value = node.left.value + node.right.value;
-                        console.log(value);
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.NEGATION: {
+                        const value = node.left.value - node.right.value;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.LESS_THAN: {
+                        const value = (node.left.value < node.right.value) ? 1 : 0;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.LESS_OR_EQUALS: {
+                        const value = (node.left.value <= node.right.value) ? 1 : 0;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.GREATER_THAN: {
+                        const value = (node.left.value > node.right.value) ? 1 : 0;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.GREATER_OR_EQUALS: {
+                        const value = (node.left.value >= node.right.value) ? 1 : 0;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    // these should follow the CPU/ALU behaviour
+                    case Token_6.TokenType.MULTIPLICATION: {
+                        const value = node.left.value * node.right.value;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    // IR would be way better for this
+                    case Token_6.TokenType.DIVISION: {
+                        const value = Math.floor(node.left.value / node.right.value);
                         return new AST_1.IntegerConstant(value);
                     }
                 }
