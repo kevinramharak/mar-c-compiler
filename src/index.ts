@@ -1,8 +1,9 @@
 import pipeline from './pipeline';
+import { defaultOptions } from './Options';
 
 export function main(...args: string[]): number {
     if (args.length > 0) {
-        const result = pipeline(args[0], args[1]);
+        const result = pipeline(args[0], defaultOptions, args[1]);
 
         if (result.error) {
             console.error(`${result.error}`);
@@ -24,8 +25,6 @@ export function main(...args: string[]): number {
         console.log('-- asm --')
         console.log(result.asm);
         console.log('---------');
-
-        console.log(result.ast!.toString());
     }
 
     return 0;

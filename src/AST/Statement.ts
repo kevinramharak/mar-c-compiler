@@ -1,5 +1,6 @@
-import { IToken } from 'src/Token';
-import { TokenStream } from 'src/TokenStream';
+import { IToken } from '../Token';
+import { TokenStream } from '../TokenStream';
+
 import Node from './Node';
 
 export default class Statement extends Node {

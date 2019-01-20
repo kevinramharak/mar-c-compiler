@@ -1,11 +1,17 @@
-import { IToken } from 'src/Token';
-import { TokenStream } from 'src/TokenStream';
+import { IToken } from '../Token';
+import { TokenStream } from '../TokenStream';
+import { IVisitor } from '../Visitor';
+
 import Expression from './Expression';
 
 export default class UnaryOp extends Expression {
-    constructor(public readonly operator: IToken, public readonly expression: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
+    constructor(public  operator: IToken, public  expression: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         super(info);
-        this.children = [expression];
+    }
+
+    public accept(visitor: IVisitor) {
+        this.expression.accept(visitor);
+        visitor.visit(this);
     }
 
     public get [Symbol.toStringTag](): string {

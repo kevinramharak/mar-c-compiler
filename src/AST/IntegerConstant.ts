@@ -1,7 +1,7 @@
-import { IToken } from 'src/Token';
-import { TokenStream } from 'src/TokenStream';
+import { IToken } from '../Token';
+import { TokenStream } from '../TokenStream';
+
 import Constant from './Constant';
-import IConstant from './IConstant';
 
 export default class IntegerConstant<T extends number = number> extends Constant<T> {
     constructor(value: T, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {

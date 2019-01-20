@@ -1,12 +1,18 @@
-import { IToken } from 'src/Token';
-import { TokenStream } from 'src/TokenStream';
+import { IToken } from '../Token';
+import { TokenStream } from '../TokenStream';
+import { IVisitor } from '../Visitor';
+
 import Expression from './Expression';
 import Statement from './Statement';
 
 export default class ReturnStatement extends Statement {
-    constructor(public readonly expression: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
+    constructor(public  expression: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         super(info);
-        this.children = [expression];
+    }
+
+    public accept(visitor: IVisitor) {
+        this.expression.accept(visitor);
+        visitor.visit(this);
     }
 
     public get [Symbol.toStringTag](): string {

@@ -1,11 +1,18 @@
-import { IToken } from 'src/Token';
-import { TokenStream } from 'src/TokenStream';
+import { IToken } from '../Token';
+import { TokenStream } from '../TokenStream';
+import { IVisitor } from '../Visitor';
+
 import Expression from './Expression';
 
 export default class BinaryOp extends Expression {
-    constructor(public readonly operator: IToken, public readonly left: Expression, public readonly right: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
+    constructor(public  operator: IToken, public  left: Expression, public  right: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         super(info);
-        this.children = [left, right];
+    }
+
+    public accept(visitor: IVisitor) {
+        this.right.accept(visitor);
+        this.left.accept(visitor);
+        visitor.visit(this);
     }
 
     public get [Symbol.toStringTag](): string {

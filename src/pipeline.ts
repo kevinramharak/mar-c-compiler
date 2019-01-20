@@ -1,16 +1,24 @@
 // helper file for testing purposes
 
+import { IOptions } from './Options';
+import { CompilerError } from './Error';
 import { generate } from './Generator';
 import { lex } from './Lexer';
 import { parse } from './Parser';
+import { optimizer } from './Optimizer';
 
 import fs from 'fs';
 
-export default function pipeline(filename: string, output?: string) {
+export default function pipeline(filename: string, options: IOptions, output?: string) {
     try {
         const content = fs.readFileSync(filename, { encoding: 'utf8' });
         const tokens = lex(content, filename);
-        const ast = parse(tokens);
+        let ast = parse(tokens);
+
+        if (options.optimize) {
+            ast = optimizer(ast);
+        }
+
         const asm = generate(ast);
 
         if (output) {
@@ -24,8 +32,12 @@ export default function pipeline(filename: string, output?: string) {
             asm,
         }
     } catch (error) {
-        return {
-            error: (error as Error)
+        if (error instanceof CompilerError) {
+            return {
+                error: (error as Error)
+            }
+        } else {
+            throw error;
         }
     }
 }
