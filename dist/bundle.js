@@ -1066,7 +1066,6 @@ define("Optimizer/OptimizerVisitor", ["require", "exports", "AST/index", "Token/
         visit(node) {
             for (const prop in node) {
                 const ref = node[prop];
-                console.log(prop, ref);
                 if (!(ref instanceof AST_1.Node)) {
                     continue;
                 }
