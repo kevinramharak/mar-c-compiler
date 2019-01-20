@@ -48,8 +48,18 @@ declare module "Token/IToken" {
         col: number;
     }
 }
+declare module "Error/CompilerError" {
+    export default class CompilerError extends Error {
+        constructor(message?: string);
+    }
+}
+declare module "Error/index" {
+    import CompilerError from "Error/CompilerError";
+    export { CompilerError, };
+}
 declare module "StringStream/EOFError" {
-    export default class EOFError extends Error {
+    import { CompilerError } from "Error/index";
+    export default class EOFError extends CompilerError {
         constructor(...args: any[]);
     }
 }
@@ -155,9 +165,10 @@ declare module "TokenStream/splitTokenTypes" {
     export default function splitTokenTypes(type: TokenType): string;
 }
 declare module "TokenStream/ParseError" {
+    import { CompilerError } from "Error/index";
     import { IToken } from "Token/index";
     import TokenStream from "TokenStream/TokenStream";
-    export default class ParseError extends Error {
+    export default class ParseError extends CompilerError {
         details: string;
         token: IToken;
         stream: TokenStream;
@@ -196,10 +207,12 @@ declare module "TokenStream/index" {
 declare module "AST/INode" {
     import { IToken } from "Token/index";
     import { TokenStream } from "TokenStream/index";
+    import { IVisitor } from "Visitor/index";
     export default interface INode {
-        children: INode[];
         token?: IToken;
         stream?: TokenStream;
+        nodeType: string;
+        accept(visitor: IVisitor): void;
         friendlyError(message: string): string;
         [Symbol.toStringTag]: string;
     }
@@ -207,17 +220,19 @@ declare module "AST/INode" {
 declare module "AST/Node" {
     import { IToken } from "Token/index";
     import { TokenStream } from "TokenStream/index";
+    import { IVisitor } from "Visitor/index";
     import INode from "AST/INode";
     export default class Node implements INode {
-        readonly token?: IToken;
-        readonly stream?: TokenStream;
-        children: INode[];
+        token?: IToken;
+        stream?: TokenStream;
         constructor(info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
         readonly [Symbol.toStringTag]: string;
+        readonly nodeType: string;
         friendlyError(message: string): string;
+        accept(visitor: IVisitor): void;
     }
 }
 declare module "AST/Expression" {
@@ -226,21 +241,6 @@ declare module "AST/Expression" {
     import Node from "AST/Node";
     export default class Expression extends Node {
         constructor(info?: Partial<{
-            token: IToken;
-            stream: TokenStream;
-        }>);
-        readonly [Symbol.toStringTag]: string;
-    }
-}
-declare module "AST/BinaryOp" {
-    import { IToken } from "Token/index";
-    import { TokenStream } from "TokenStream/index";
-    import Expression from "AST/Expression";
-    export default class BinaryOp extends Expression {
-        readonly operator: IToken;
-        readonly left: Expression;
-        readonly right: Expression;
-        constructor(operator: IToken, left: Expression, right: Expression, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
@@ -259,8 +259,20 @@ declare module "AST/Constant" {
     import IConstant from "AST/IConstant";
     export default class Constant<T = any> extends Expression implements IConstant<T> {
         type: string;
-        readonly value: T;
+        value: T;
         constructor(type: string, value: T, info?: Partial<{
+            token: IToken;
+            stream: TokenStream;
+        }>);
+        readonly [Symbol.toStringTag]: string;
+    }
+}
+declare module "AST/IntegerConstant" {
+    import { IToken } from "Token/index";
+    import { TokenStream } from "TokenStream/index";
+    import Constant from "AST/Constant";
+    export default class IntegerConstant<T extends number = number> extends Constant<T> {
+        constructor(value: T, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
@@ -282,70 +294,66 @@ declare module "AST/Statement" {
 declare module "AST/FunctionDeclaration" {
     import { IToken } from "Token/index";
     import { TokenStream } from "TokenStream/index";
+    import { IVisitor } from "Visitor/index";
     import Node from "AST/Node";
     import Statement from "AST/Statement";
     export default class FunctionDeclaration extends Node {
-        readonly type: string;
-        readonly name: string;
-        readonly statement: Statement;
+        type: string;
+        name: string;
+        statement: Statement;
         constructor(type: string, name: string, statement: Statement, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
-        readonly [Symbol.toStringTag]: string;
-    }
-}
-declare module "AST/IntegerConstant" {
-    import { IToken } from "Token/index";
-    import { TokenStream } from "TokenStream/index";
-    import Constant from "AST/Constant";
-    export default class IntegerConstant<T extends number = number> extends Constant<T> {
-        constructor(value: T, info?: Partial<{
-            token: IToken;
-            stream: TokenStream;
-        }>);
+        accept(visitor: IVisitor): void;
         readonly [Symbol.toStringTag]: string;
     }
 }
 declare module "AST/Program" {
     import { IToken } from "Token/index";
     import { TokenStream } from "TokenStream/index";
+    import { IVisitor } from "Visitor/index";
     import FunctionDeclaration from "AST/FunctionDeclaration";
     import Node from "AST/Node";
     export default class Program extends Node {
-        readonly declaration: FunctionDeclaration;
+        declaration: FunctionDeclaration;
         constructor(declaration: FunctionDeclaration, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
+        accept(visitor: IVisitor): void;
         readonly [Symbol.toStringTag]: string;
     }
 }
 declare module "AST/ReturnStatement" {
     import { IToken } from "Token/index";
     import { TokenStream } from "TokenStream/index";
+    import { IVisitor } from "Visitor/index";
     import Expression from "AST/Expression";
     import Statement from "AST/Statement";
     export default class ReturnStatement extends Statement {
-        readonly expression: Expression;
+        expression: Expression;
         constructor(expression: Expression, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
+        accept(visitor: IVisitor): void;
         readonly [Symbol.toStringTag]: string;
     }
 }
 declare module "AST/UnaryOp" {
     import { IToken } from "Token/index";
     import { TokenStream } from "TokenStream/index";
+    import { IVisitor } from "Visitor/index";
     import Expression from "AST/Expression";
     export default class UnaryOp extends Expression {
-        readonly operator: IToken;
-        readonly expression: Expression;
+        operator: IToken;
+        expression: Expression;
         constructor(operator: IToken, expression: Expression, info?: Partial<{
             token: IToken;
             stream: TokenStream;
         }>);
+        accept(visitor: IVisitor): void;
         readonly [Symbol.toStringTag]: string;
     }
 }
@@ -355,24 +363,51 @@ declare module "AST/index" {
     import IntegerConstant from "AST/IntegerConstant";
     import Expression from "AST/Expression";
     import FunctionDeclaration from "AST/FunctionDeclaration";
+    import IConstant from "AST/IConstant";
     import INode from "AST/INode";
     import Node from "AST/Node";
     import Program from "AST/Program";
     import ReturnStatement from "AST/ReturnStatement";
     import UnaryOp from "AST/UnaryOp";
     import Statement from "AST/Statement";
-    export { BinaryOp, Constant, IntegerConstant, Expression, FunctionDeclaration, Program, Node, INode, ReturnStatement, Statement, UnaryOp, };
+    export { BinaryOp, Constant, IntegerConstant, Expression, FunctionDeclaration, Program, Node, INode, IConstant, ReturnStatement, Statement, UnaryOp, };
 }
-declare module "Generator/Visitor" {
-    import { Node } from "AST/index";
-    export default class Visitor<R = string> {
-        constructor();
-        visit<T = R>(node: Node, ...args: any[]): T | T[];
+declare module "Visitor/IVisitor" {
+    import { INode } from "AST/index";
+    export default interface IVisitor<T = any> {
+        visit(node: INode): void;
+        result?: T;
     }
 }
-declare module "Generator/generate" {
-    import { Node } from "AST/index";
-    export default function generate(ast: Node): string;
+declare module "Visitor/Visitor" {
+    import { INode } from "AST/index";
+    import IVisitor from "Visitor/IVisitor";
+    export default class Visitor<T = string> implements IVisitor<T> {
+        constructor();
+        visit(node: INode): void;
+    }
+}
+declare module "Visitor/index" {
+    import IVisitor from "Visitor/IVisitor";
+    import Visitor from "Visitor/Visitor";
+    export { IVisitor, Visitor, };
+}
+declare module "AST/BinaryOp" {
+    import { IToken } from "Token/index";
+    import { TokenStream } from "TokenStream/index";
+    import { IVisitor } from "Visitor/index";
+    import Expression from "AST/Expression";
+    export default class BinaryOp extends Expression {
+        operator: IToken;
+        left: Expression;
+        right: Expression;
+        constructor(operator: IToken, left: Expression, right: Expression, info?: Partial<{
+            token: IToken;
+            stream: TokenStream;
+        }>);
+        accept(visitor: IVisitor): void;
+        readonly [Symbol.toStringTag]: string;
+    }
 }
 declare module "Generator/ILabel" {
     export default interface ILabel {
@@ -381,29 +416,32 @@ declare module "Generator/ILabel" {
         toString(): string;
     }
 }
+declare module "Generator/CodeGenVisitor" {
+    import * as AST from "AST/index";
+    import { Visitor } from "Visitor/index";
+    import ILabel from "Generator/ILabel";
+    export default class CodeGenVisitor extends Visitor<string> {
+        private labelId;
+        private text;
+        constructor();
+        readonly result: string;
+        generateLabel(extra?: string): ILabel;
+        visitFunctionDeclaration(node: AST.FunctionDeclaration): void;
+        visitReturnStatement(node: AST.ReturnStatement): void;
+        visitBinaryOp(node: AST.BinaryOp): void;
+        visitUnaryOp(node: AST.UnaryOp): void;
+        visitIntegerConstant(node: AST.IntegerConstant): void;
+    }
+}
+declare module "Generator/generate" {
+    import { INode } from "AST/index";
+    export default function generate(ast: INode): string;
+}
 declare module "Generator/index" {
     import generate from "Generator/generate";
     import CodeGenVisitor from "Generator/CodeGenVisitor";
     import ILabel from "Generator/ILabel";
-    import Visitor from "Generator/Visitor";
-    export { CodeGenVisitor, ILabel, generate, Visitor, };
-}
-declare module "Generator/CodeGenVisitor" {
-    import * as AST from "AST/index";
-    import Visitor from "Generator/Visitor";
-    import { ILabel } from "Generator/index";
-    export default class CodeGenVisitor extends Visitor<string> {
-        private labelId;
-        constructor();
-        generateLabel(extra?: string): ILabel;
-        visitProgram(node: AST.Program): string;
-        visitFunctionDeclaration(node: AST.FunctionDeclaration): string;
-        visitReturnStatement(node: AST.ReturnStatement): string;
-        visitBinaryOp(node: AST.BinaryOp): string;
-        visitUnaryOp(node: AST.UnaryOp): string;
-        visitConstant(node: AST.Constant): string;
-        visitIntegerConstant(node: AST.IntegerConstant): string;
-    }
+    export { CodeGenVisitor, ILabel, generate, };
 }
 declare module "Lexer/keywords" {
     const keywords: string[];
@@ -432,6 +470,40 @@ declare module "Lexer/index" {
     import keywords from "Lexer/keywords";
     import lex from "Lexer/lex";
     export { lex, is, keywords, };
+}
+declare module "Optimizer/OptimizerVisitor" {
+    import { BinaryOp, Expression, ReturnStatement } from "AST/index";
+    import { Visitor } from "Visitor/index";
+    export default class OptimizerVisitor extends Visitor {
+        constructor();
+        visitReturnStatement(node: ReturnStatement): void;
+        evaluateBinaryOp(node: BinaryOp): Expression;
+    }
+}
+declare module "Optimizer/optimize" {
+    import { INode } from "AST/index";
+    export default function optimize(ast: INode): INode;
+}
+declare module "Optimizer/index" {
+    import optimize from "Optimizer/optimize";
+    import OptimizerVisitor from "Optimizer/OptimizerVisitor";
+    export { optimize, OptimizerVisitor, };
+}
+declare module "Options/IOptions" {
+    export default interface IOptions {
+        optimize: boolean;
+    }
+}
+declare module "Options/options" {
+    const options: {
+        optimize: boolean;
+    };
+    export default options;
+}
+declare module "Options/index" {
+    import IOptions from "Options/IOptions";
+    import defaultOptions from "Options/options";
+    export { IOptions, defaultOptions, };
 }
 declare module "Parser/parseExpression" {
     import { Expression } from "AST/index";

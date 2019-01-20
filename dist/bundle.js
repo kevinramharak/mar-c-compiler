@@ -51,10 +51,26 @@ define("Token/IToken", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("StringStream/EOFError", ["require", "exports"], function (require, exports) {
+define("Error/CompilerError", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    class EOFError extends Error {
+    class CompilerError extends Error {
+        constructor(message) {
+            super(message);
+        }
+    }
+    exports.default = CompilerError;
+});
+define("Error/index", ["require", "exports", "Error/CompilerError"], function (require, exports, CompilerError_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    CompilerError_1 = __importDefault(CompilerError_1);
+    exports.CompilerError = CompilerError_1.default;
+});
+define("StringStream/EOFError", ["require", "exports", "Error/index"], function (require, exports, Error_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class EOFError extends Error_1.CompilerError {
         constructor(...args) {
             super(...args);
         }
@@ -253,10 +269,10 @@ define("TokenStream/splitTokenTypes", ["require", "exports", "Token/index"], fun
     }
     exports.default = splitTokenTypes;
 });
-define("TokenStream/ParseError", ["require", "exports"], function (require, exports) {
+define("TokenStream/ParseError", ["require", "exports", "Error/index"], function (require, exports, Error_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    class ParseError extends Error {
+    class ParseError extends Error_2.CompilerError {
         constructor(message, details, token, stream) {
             super(message);
             this.details = details;
@@ -364,18 +380,23 @@ define("AST/Node", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     class Node {
         constructor(info = {}) {
-            this.children = [];
             this.token = info.token;
             this.stream = info.stream;
         }
         get [Symbol.toStringTag]() {
             return 'Node';
         }
+        get nodeType() {
+            return Object.prototype.toString.call(this).slice(8, -1);
+        }
         friendlyError(message) {
             if (!this.stream || !this.token) {
                 return message;
             }
             return this.stream.friendlyError(this.token, message);
+        }
+        accept(visitor) {
+            return visitor.visit(this);
         }
     }
     exports.default = Node;
@@ -394,33 +415,15 @@ define("AST/Expression", ["require", "exports", "AST/Node"], function (require, 
     }
     exports.default = Expression;
 });
-define("AST/BinaryOp", ["require", "exports", "AST/Expression"], function (require, exports, Expression_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    Expression_1 = __importDefault(Expression_1);
-    class BinaryOp extends Expression_1.default {
-        constructor(operator, left, right, info = {}) {
-            super(info);
-            this.operator = operator;
-            this.left = left;
-            this.right = right;
-            this.children = [left, right];
-        }
-        get [Symbol.toStringTag]() {
-            return 'BinaryOp';
-        }
-    }
-    exports.default = BinaryOp;
-});
 define("AST/IConstant", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("AST/Constant", ["require", "exports", "AST/Expression"], function (require, exports, Expression_2) {
+define("AST/Constant", ["require", "exports", "AST/Expression"], function (require, exports, Expression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Expression_2 = __importDefault(Expression_2);
-    class Constant extends Expression_2.default {
+    Expression_1 = __importDefault(Expression_1);
+    class Constant extends Expression_1.default {
         constructor(type, value, info = {}) {
             super(info);
             this.type = type;
@@ -431,6 +434,20 @@ define("AST/Constant", ["require", "exports", "AST/Expression"], function (requi
         }
     }
     exports.default = Constant;
+});
+define("AST/IntegerConstant", ["require", "exports", "AST/Constant"], function (require, exports, Constant_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    Constant_1 = __importDefault(Constant_1);
+    class IntegerConstant extends Constant_1.default {
+        constructor(value, info = {}) {
+            super('int16_t', value, info);
+        }
+        get [Symbol.toStringTag]() {
+            return 'IntegerConstant';
+        }
+    }
+    exports.default = IntegerConstant;
 });
 define("AST/Statement", ["require", "exports", "AST/Node"], function (require, exports, Node_2) {
     "use strict";
@@ -456,27 +473,16 @@ define("AST/FunctionDeclaration", ["require", "exports", "AST/Node"], function (
             this.type = type;
             this.name = name;
             this.statement = statement;
-            this.children = [statement];
+        }
+        accept(visitor) {
+            visitor.visit(this);
+            this.statement.accept(visitor);
         }
         get [Symbol.toStringTag]() {
             return 'FunctionDeclaration';
         }
     }
     exports.default = FunctionDeclaration;
-});
-define("AST/IntegerConstant", ["require", "exports", "AST/Constant"], function (require, exports, Constant_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    Constant_1 = __importDefault(Constant_1);
-    class IntegerConstant extends Constant_1.default {
-        constructor(value, info = {}) {
-            super('int16_t', value, info);
-        }
-        get [Symbol.toStringTag]() {
-            return 'IntegerConstant';
-        }
-    }
-    exports.default = IntegerConstant;
 });
 define("AST/Program", ["require", "exports", "AST/Node"], function (require, exports, Node_4) {
     "use strict";
@@ -486,7 +492,10 @@ define("AST/Program", ["require", "exports", "AST/Node"], function (require, exp
         constructor(declaration, info = {}) {
             super(info);
             this.declaration = declaration;
-            this.children = [declaration];
+        }
+        accept(visitor) {
+            this.declaration.accept(visitor);
+            visitor.visit(this);
         }
         get [Symbol.toStringTag]() {
             return 'Program';
@@ -502,7 +511,10 @@ define("AST/ReturnStatement", ["require", "exports", "AST/Statement"], function 
         constructor(expression, info = {}) {
             super(info);
             this.expression = expression;
-            this.children = [expression];
+        }
+        accept(visitor) {
+            this.expression.accept(visitor);
+            visitor.visit(this);
         }
         get [Symbol.toStringTag]() {
             return 'ReturnStatement';
@@ -510,16 +522,19 @@ define("AST/ReturnStatement", ["require", "exports", "AST/Statement"], function 
     }
     exports.default = ReturnStatement;
 });
-define("AST/UnaryOp", ["require", "exports", "AST/Expression"], function (require, exports, Expression_3) {
+define("AST/UnaryOp", ["require", "exports", "AST/Expression"], function (require, exports, Expression_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Expression_3 = __importDefault(Expression_3);
-    class UnaryOp extends Expression_3.default {
+    Expression_2 = __importDefault(Expression_2);
+    class UnaryOp extends Expression_2.default {
         constructor(operator, expression, info = {}) {
             super(info);
             this.operator = operator;
             this.expression = expression;
-            this.children = [expression];
+        }
+        accept(visitor) {
+            this.expression.accept(visitor);
+            visitor.visit(this);
         }
         get [Symbol.toStringTag]() {
             return 'UnaryOp';
@@ -527,13 +542,13 @@ define("AST/UnaryOp", ["require", "exports", "AST/Expression"], function (requir
     }
     exports.default = UnaryOp;
 });
-define("AST/index", ["require", "exports", "AST/BinaryOp", "AST/Constant", "AST/IntegerConstant", "AST/Expression", "AST/FunctionDeclaration", "AST/Node", "AST/Program", "AST/ReturnStatement", "AST/UnaryOp", "AST/Statement"], function (require, exports, BinaryOp_1, Constant_2, IntegerConstant_1, Expression_4, FunctionDeclaration_1, Node_5, Program_1, ReturnStatement_1, UnaryOp_1, Statement_2) {
+define("AST/index", ["require", "exports", "AST/BinaryOp", "AST/Constant", "AST/IntegerConstant", "AST/Expression", "AST/FunctionDeclaration", "AST/Node", "AST/Program", "AST/ReturnStatement", "AST/UnaryOp", "AST/Statement"], function (require, exports, BinaryOp_1, Constant_2, IntegerConstant_1, Expression_3, FunctionDeclaration_1, Node_5, Program_1, ReturnStatement_1, UnaryOp_1, Statement_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     BinaryOp_1 = __importDefault(BinaryOp_1);
     Constant_2 = __importDefault(Constant_2);
     IntegerConstant_1 = __importDefault(IntegerConstant_1);
-    Expression_4 = __importDefault(Expression_4);
+    Expression_3 = __importDefault(Expression_3);
     FunctionDeclaration_1 = __importDefault(FunctionDeclaration_1);
     Node_5 = __importDefault(Node_5);
     Program_1 = __importDefault(Program_1);
@@ -543,7 +558,7 @@ define("AST/index", ["require", "exports", "AST/BinaryOp", "AST/Constant", "AST/
     exports.BinaryOp = BinaryOp_1.default;
     exports.Constant = Constant_2.default;
     exports.IntegerConstant = IntegerConstant_1.default;
-    exports.Expression = Expression_4.default;
+    exports.Expression = Expression_3.default;
     exports.FunctionDeclaration = FunctionDeclaration_1.default;
     exports.Node = Node_5.default;
     exports.Program = Program_1.default;
@@ -551,56 +566,68 @@ define("AST/index", ["require", "exports", "AST/BinaryOp", "AST/Constant", "AST/
     exports.UnaryOp = UnaryOp_1.default;
     exports.Statement = Statement_2.default;
 });
-define("Generator/Visitor", ["require", "exports"], function (require, exports) {
+define("Visitor/IVisitor", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("Visitor/Visitor", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class Visitor {
         constructor() {
         }
-        visit(node, ...args) {
-            const type = Object.prototype.toString.call(node).slice(8, -1);
-            const visitor = this['visit' + type];
+        visit(node) {
+            const visitor = this['visit' + node.nodeType];
             if (typeof visitor !== 'undefined') {
-                return visitor.call(this, node, ...args);
-            }
-            else {
-                return node.children.map(this.visit.bind(this));
+                visitor.call(this, node);
             }
         }
     }
     exports.default = Visitor;
 });
-define("Generator/generate", ["require", "exports", "Generator/CodeGenVisitor"], function (require, exports, CodeGenVisitor_1) {
+define("Visitor/index", ["require", "exports", "Visitor/Visitor"], function (require, exports, Visitor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    CodeGenVisitor_1 = __importDefault(CodeGenVisitor_1);
-    function generate(ast) {
-        return new CodeGenVisitor_1.default().visit(ast);
+    Visitor_1 = __importDefault(Visitor_1);
+    exports.Visitor = Visitor_1.default;
+});
+define("AST/BinaryOp", ["require", "exports", "AST/Expression"], function (require, exports, Expression_4) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    Expression_4 = __importDefault(Expression_4);
+    class BinaryOp extends Expression_4.default {
+        constructor(operator, left, right, info = {}) {
+            super(info);
+            this.operator = operator;
+            this.left = left;
+            this.right = right;
+        }
+        accept(visitor) {
+            this.right.accept(visitor);
+            this.left.accept(visitor);
+            visitor.visit(this);
+        }
+        get [Symbol.toStringTag]() {
+            return 'BinaryOp';
+        }
     }
-    exports.default = generate;
+    exports.default = BinaryOp;
 });
 define("Generator/ILabel", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
-define("Generator/index", ["require", "exports", "Generator/generate", "Generator/CodeGenVisitor", "Generator/Visitor"], function (require, exports, generate_1, CodeGenVisitor_2, Visitor_1) {
+define("Generator/CodeGenVisitor", ["require", "exports", "Token/index", "Visitor/index"], function (require, exports, Token_4, Visitor_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    generate_1 = __importDefault(generate_1);
-    CodeGenVisitor_2 = __importDefault(CodeGenVisitor_2);
-    Visitor_1 = __importDefault(Visitor_1);
-    exports.generate = generate_1.default;
-    exports.CodeGenVisitor = CodeGenVisitor_2.default;
-    exports.Visitor = Visitor_1.default;
-});
-define("Generator/CodeGenVisitor", ["require", "exports", "Generator/Visitor", "Token/index"], function (require, exports, Visitor_2, Token_4) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    Visitor_2 = __importDefault(Visitor_2);
-    class CodeGenVisitor extends Visitor_2.default {
+    class CodeGenVisitor extends Visitor_2.Visitor {
         constructor() {
             super();
             this.labelId = 0;
+            this.text = '';
+        }
+        get result() {
+            return this.text;
         }
         generateLabel(extra = '') {
             const label = `LABEL_${this.labelId++}${(extra) ? `_${extra}` : ''}`;
@@ -612,25 +639,22 @@ define("Generator/CodeGenVisitor", ["require", "exports", "Generator/Visitor", "
                 toString,
             };
         }
-        visitProgram(node) {
-            return this.visit(node.declaration);
-        }
         visitFunctionDeclaration(node) {
-            return `\
+            this.text += `\
 ${node.name}:
-` + this.visit(node.statement);
+`;
         }
-        // no ret but brk if function is main, or some custom exit function to wrap the brk instruction
         visitReturnStatement(node) {
-            return this.visit(node.expression) + `\
+            this.text += `\
+  POP A
   ret
 `;
         }
         visitBinaryOp(node) {
-            let asm = this.visit(node.right);
-            asm += '  PUSH A\n';
-            asm += this.visit(node.left);
-            asm += '  POP B\n';
+            let asm = `\
+  POP A
+  POP B
+`;
             switch (node.operator.type) {
                 case Token_4.TokenType.MULTIPLICATION:
                     asm += '  MUL B';
@@ -765,10 +789,13 @@ ${endLabel}:
                     break;
                 }
             }
-            return asm;
+            asm += '  PUSH A\n';
+            this.text += asm;
         }
         visitUnaryOp(node) {
-            let asm = this.visit(node.expression);
+            let asm = `\
+  POP A
+`;
             switch (node.operator.type) {
                 case Token_4.TokenType.LOGICAL_NOT: {
                     const label = this.generateLabel('logical_not');
@@ -782,6 +809,7 @@ ${endLabel}:
 ${trueLabel}:
   MOV A, 1
 ${endLabel}:
+  PUSH A
 `;
                     break;
                 }
@@ -796,18 +824,35 @@ ${endLabel}:
 `;
                     break;
             }
-            return asm;
-        }
-        visitConstant(node) {
-            return this.visitIntegerConstant(node);
+            asm += '  PUSH A\n';
+            this.text += asm;
         }
         visitIntegerConstant(node) {
-            return `\
-  MOV A, ${node.value}
+            this.text += `\
+  PUSH ${node.value}
 `;
         }
     }
     exports.default = CodeGenVisitor;
+});
+define("Generator/generate", ["require", "exports", "Generator/CodeGenVisitor"], function (require, exports, CodeGenVisitor_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    CodeGenVisitor_1 = __importDefault(CodeGenVisitor_1);
+    function generate(ast) {
+        const visitor = new CodeGenVisitor_1.default();
+        ast.accept(visitor);
+        return visitor.result;
+    }
+    exports.default = generate;
+});
+define("Generator/index", ["require", "exports", "Generator/generate", "Generator/CodeGenVisitor"], function (require, exports, generate_1, CodeGenVisitor_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    generate_1 = __importDefault(generate_1);
+    CodeGenVisitor_2 = __importDefault(CodeGenVisitor_2);
+    exports.generate = generate_1.default;
+    exports.CodeGenVisitor = CodeGenVisitor_2.default;
 });
 define("Lexer/keywords", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -1007,6 +1052,70 @@ define("Lexer/index", ["require", "exports", "Lexer/is", "Lexer/keywords", "Lexe
     exports.keywords = keywords_2.default;
     exports.lex = lex_1.default;
 });
+define("Optimizer/OptimizerVisitor", ["require", "exports", "AST/index", "Token/index", "Visitor/index"], function (require, exports, AST_1, Token_6, Visitor_3) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class OptimizerVisitor extends Visitor_3.Visitor {
+        constructor() {
+            super();
+        }
+        visitReturnStatement(node) {
+            if (node.expression instanceof AST_1.BinaryOp) {
+                node.expression = this.evaluateBinaryOp(node.expression);
+            }
+        }
+        evaluateBinaryOp(node) {
+            if ((node.left instanceof AST_1.IntegerConstant) && (node.right instanceof AST_1.IntegerConstant)) {
+                switch (node.operator.type) {
+                    case Token_6.TokenType.ADDITION: {
+                        const value = node.left.value + node.right.value;
+                        console.log(value);
+                        return new AST_1.IntegerConstant(value);
+                    }
+                }
+            }
+            return node;
+        }
+    }
+    exports.default = OptimizerVisitor;
+});
+define("Optimizer/optimize", ["require", "exports", "Optimizer/OptimizerVisitor"], function (require, exports, OptimizerVisitor_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    OptimizerVisitor_1 = __importDefault(OptimizerVisitor_1);
+    function optimize(ast) {
+        const visitor = new OptimizerVisitor_1.default();
+        ast.accept(visitor);
+        return ast;
+    }
+    exports.default = optimize;
+});
+define("Optimizer/index", ["require", "exports", "Optimizer/optimize", "Optimizer/OptimizerVisitor"], function (require, exports, optimize_1, OptimizerVisitor_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    optimize_1 = __importDefault(optimize_1);
+    OptimizerVisitor_2 = __importDefault(OptimizerVisitor_2);
+    exports.optimize = optimize_1.default;
+    exports.OptimizerVisitor = OptimizerVisitor_2.default;
+});
+define("Options/IOptions", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("Options/options", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const options = {
+        optimize: false,
+    };
+    exports.default = options;
+});
+define("Options/index", ["require", "exports", "Options/options"], function (require, exports, options_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    options_1 = __importDefault(options_1);
+    exports.defaultOptions = options_1.default;
+});
 define("Parser/parseExpression", ["require", "exports", "Parser/index"], function (require, exports, _1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1016,46 +1125,46 @@ define("Parser/parseExpression", ["require", "exports", "Parser/index"], functio
     exports.default = parseExpression;
     ;
 });
-define("Parser/parseStatement", ["require", "exports", "AST/index", "Token/index", "Parser/parseExpression"], function (require, exports, AST_1, Token_6, parseExpression_1) {
+define("Parser/parseStatement", ["require", "exports", "AST/index", "Token/index", "Parser/parseExpression"], function (require, exports, AST_2, Token_7, parseExpression_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parseExpression_1 = __importDefault(parseExpression_1);
     function parseStatement(stream) {
-        const keyword = stream.expect(Token_6.TokenType.KEYWORD);
+        const keyword = stream.expect(Token_7.TokenType.KEYWORD);
         if (keyword.lexeme !== 'return') {
             stream.panic(keyword, 'return');
         }
         const expression = parseExpression_1.default(stream);
-        stream.expect(Token_6.TokenType.SEMI_COLON);
-        return new AST_1.ReturnStatement(expression);
+        stream.expect(Token_7.TokenType.SEMI_COLON);
+        return new AST_2.ReturnStatement(expression);
     }
     exports.default = parseStatement;
     ;
 });
-define("Parser/parseFunctionDeclaration", ["require", "exports", "AST/index", "Token/index", "Parser/parseStatement"], function (require, exports, AST_2, Token_7, parseStatement_1) {
+define("Parser/parseFunctionDeclaration", ["require", "exports", "AST/index", "Token/index", "Parser/parseStatement"], function (require, exports, AST_3, Token_8, parseStatement_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parseStatement_1 = __importDefault(parseStatement_1);
     function parseFunctionDeclaration(stream) {
-        const type = stream.expect(Token_7.TokenType.KEYWORD | Token_7.TokenType.IDENTIFIER);
-        const identifier = stream.expect(Token_7.TokenType.IDENTIFIER);
-        stream.expect(Token_7.TokenType.LEFT_PAREN);
-        stream.expect(Token_7.TokenType.RIGHT_PAREN);
-        stream.expect(Token_7.TokenType.LEFT_BRACE);
+        const type = stream.expect(Token_8.TokenType.KEYWORD | Token_8.TokenType.IDENTIFIER);
+        const identifier = stream.expect(Token_8.TokenType.IDENTIFIER);
+        stream.expect(Token_8.TokenType.LEFT_PAREN);
+        stream.expect(Token_8.TokenType.RIGHT_PAREN);
+        stream.expect(Token_8.TokenType.LEFT_BRACE);
         const statement = parseStatement_1.default(stream);
-        stream.expect(Token_7.TokenType.RIGHT_BRACE);
-        return new AST_2.FunctionDeclaration(type.lexeme, identifier.lexeme, statement, { token: type, stream });
+        stream.expect(Token_8.TokenType.RIGHT_BRACE);
+        return new AST_3.FunctionDeclaration(type.lexeme, identifier.lexeme, statement, { token: type, stream });
     }
     exports.default = parseFunctionDeclaration;
     ;
 });
-define("Parser/parseProgram", ["require", "exports", "AST/index", "Parser/parseFunctionDeclaration"], function (require, exports, AST_3, parseFunctionDeclaration_1) {
+define("Parser/parseProgram", ["require", "exports", "AST/index", "Parser/parseFunctionDeclaration"], function (require, exports, AST_4, parseFunctionDeclaration_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parseFunctionDeclaration_1 = __importDefault(parseFunctionDeclaration_1);
     function parseProgram(stream) {
         const func = parseFunctionDeclaration_1.default(stream);
-        return new AST_3.Program(func);
+        return new AST_4.Program(func);
     }
     exports.default = parseProgram;
     ;
@@ -1070,29 +1179,14 @@ define("Parser/parse", ["require", "exports", "TokenStream/index", "Parser/parse
     }
     exports.default = parse;
 });
-define("Parser/parseLogicalOr", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_4, Token_8, _2) {
+define("Parser/parseLogicalOr", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_5, Token_9, _2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function parseLogicalOr(stream) {
         let expression = _2.parseLogicalAnd(stream);
-        while (stream.peek().type & Token_8.TokenType.LOGICAL_OR) {
+        while (stream.peek().type & Token_9.TokenType.LOGICAL_OR) {
             const operator = stream.next();
             const right = _2.parseLogicalAnd(stream);
-            expression = new AST_4.BinaryOp(operator, expression, right);
-        }
-        return expression;
-    }
-    exports.default = parseLogicalOr;
-    ;
-});
-define("Parser/parseLogicalAnd", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_5, Token_9, _3) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function parseLogicalOr(stream) {
-        let expression = _3.parseEquality(stream);
-        while (stream.peek().type & Token_9.TokenType.LOGICAL_AND) {
-            const operator = stream.next();
-            const right = _3.parseEquality(stream);
             expression = new AST_5.BinaryOp(operator, expression, right);
         }
         return expression;
@@ -1100,14 +1194,14 @@ define("Parser/parseLogicalAnd", ["require", "exports", "AST/index", "Token/inde
     exports.default = parseLogicalOr;
     ;
 });
-define("Parser/parseEquality", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_6, Token_10, _4) {
+define("Parser/parseLogicalAnd", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_6, Token_10, _3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function parseLogicalOr(stream) {
-        let expression = _4.parseRelational(stream);
-        while (stream.peek().type & Token_10.TokenType.EQUALITY) {
+        let expression = _3.parseEquality(stream);
+        while (stream.peek().type & Token_10.TokenType.LOGICAL_AND) {
             const operator = stream.next();
-            const right = _4.parseRelational(stream);
+            const right = _3.parseEquality(stream);
             expression = new AST_6.BinaryOp(operator, expression, right);
         }
         return expression;
@@ -1115,14 +1209,14 @@ define("Parser/parseEquality", ["require", "exports", "AST/index", "Token/index"
     exports.default = parseLogicalOr;
     ;
 });
-define("Parser/parseRelational", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_7, Token_11, _5) {
+define("Parser/parseEquality", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_7, Token_11, _4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function parseLogicalOr(stream) {
-        let expression = _5.parseAdditive(stream);
-        while (stream.peek().type & Token_11.TokenType.RELATIONAL) {
+        let expression = _4.parseRelational(stream);
+        while (stream.peek().type & Token_11.TokenType.EQUALITY) {
             const operator = stream.next();
-            const right = _5.parseAdditive(stream);
+            const right = _4.parseRelational(stream);
             expression = new AST_7.BinaryOp(operator, expression, right);
         }
         return expression;
@@ -1130,55 +1224,70 @@ define("Parser/parseRelational", ["require", "exports", "AST/index", "Token/inde
     exports.default = parseLogicalOr;
     ;
 });
-define("Parser/parseAdditive", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_8, Token_12, _6) {
+define("Parser/parseRelational", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_8, Token_12, _5) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function parseLogicalOr(stream) {
+        let expression = _5.parseAdditive(stream);
+        while (stream.peek().type & Token_12.TokenType.RELATIONAL) {
+            const operator = stream.next();
+            const right = _5.parseAdditive(stream);
+            expression = new AST_8.BinaryOp(operator, expression, right);
+        }
+        return expression;
+    }
+    exports.default = parseLogicalOr;
+    ;
+});
+define("Parser/parseAdditive", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_9, Token_13, _6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function parseAdditive(stream) {
         let expression = _6.parseTerm(stream);
-        while (stream.peek().type & Token_12.TokenType.ADDITIVE) {
+        while (stream.peek().type & Token_13.TokenType.ADDITIVE) {
             const operator = stream.next();
             const right = _6.parseTerm(stream);
-            expression = new AST_8.BinaryOp(operator, expression, right);
+            expression = new AST_9.BinaryOp(operator, expression, right);
         }
         return expression;
     }
     exports.default = parseAdditive;
     ;
 });
-define("Parser/parseFactor", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_9, Token_13, _7) {
+define("Parser/parseFactor", ["require", "exports", "AST/index", "Token/index", "Parser/index"], function (require, exports, AST_10, Token_14, _7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function parseFactor(stream) {
         const peek = stream.peek();
-        if (peek.type === Token_13.TokenType.LEFT_PAREN) {
+        if (peek.type === Token_14.TokenType.LEFT_PAREN) {
             stream.next();
             const expression = _7.parseExpression(stream);
-            stream.expect(Token_13.TokenType.RIGHT_PAREN);
+            stream.expect(Token_14.TokenType.RIGHT_PAREN);
             return expression;
         }
-        else if (peek.type & Token_13.TokenType.UNARY_OP) {
+        else if (peek.type & Token_14.TokenType.UNARY_OP) {
             const operator = stream.next();
             const factor = parseFactor(stream);
-            return new AST_9.UnaryOp(operator, factor);
+            return new AST_10.UnaryOp(operator, factor);
         }
         else {
-            const constant = stream.expect(Token_13.TokenType.INTEGER_LITERAL);
-            return new AST_9.IntegerConstant(Number.parseInt(constant.lexeme));
+            const constant = stream.expect(Token_14.TokenType.INTEGER_LITERAL);
+            return new AST_10.IntegerConstant(Number.parseInt(constant.lexeme));
         }
     }
     exports.default = parseFactor;
     ;
 });
-define("Parser/parseTerm", ["require", "exports", "AST/index", "Token/index", "Parser/parseFactor"], function (require, exports, AST_10, Token_14, parseFactor_1) {
+define("Parser/parseTerm", ["require", "exports", "AST/index", "Token/index", "Parser/parseFactor"], function (require, exports, AST_11, Token_15, parseFactor_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     parseFactor_1 = __importDefault(parseFactor_1);
     function parseTerm(stream) {
         let factor = parseFactor_1.default(stream);
-        while (stream.peek().type & Token_14.TokenType.TERM) {
+        while (stream.peek().type & Token_15.TokenType.TERM) {
             const operator = stream.next();
             const right = parseFactor_1.default(stream);
-            factor = new AST_10.BinaryOp(operator, factor, right);
+            factor = new AST_11.BinaryOp(operator, factor, right);
         }
         return factor;
     }
