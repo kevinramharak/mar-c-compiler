@@ -16,7 +16,6 @@ export default class OptimizerVisitor extends Visitor<INode> {
     public visit(node: INode) {
         for (const prop in node) {
             const ref = (node as any)[prop];
-            console.log(prop, ref);
             if (!(ref instanceof Node)) {
                 continue;
             }
