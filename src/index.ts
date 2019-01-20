@@ -21,11 +21,13 @@ export function main(...args: string[]): number {
         console.log(result.ast);
         console.log('---------');
 
+        console.log('--- optimizer ---');
+        console.log(result.optimizedAst);
+        console.log('-----------------')
+
         console.log('-- asm --')
         console.log(result.asm);
         console.log('---------');
-
-        console.log(result.ast!.toString());
     }
 
     return 0;

@@ -8,8 +8,7 @@ export default class Visitor<T = string> implements IVisitor<T> {
     }
 
     public visit(node: INode): void {
-        const type = Object.prototype.toString.call(node).slice(8, -1);
-        const visitor = (this as any)['visit' + type] as ((node: INode, ...args: any[]) => void) | undefined;
+        const visitor = (this as any)['visit' + node.nodeType] as ((node: INode, ...args: any[]) => void) | undefined;
         if (typeof visitor !== 'undefined') {
             visitor.call(this, node);
         }

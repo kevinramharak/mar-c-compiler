@@ -17,6 +17,10 @@ export default class Node implements INode {
         return 'Node';
     }
 
+    public get nodeType(): string {
+        return Object.prototype.toString.call(this).slice(8, -1);
+    }
+
     public friendlyError(message: string): string {
         if (!this.stream || !this.token) {
             return message;
