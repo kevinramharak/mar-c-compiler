@@ -15,7 +15,7 @@ export default class CodeGenVisitor extends Visitor<string> {
         const type = Object.prototype.toString.call(node).slice(8, -1);
         const visitor = (this as any)['visit' + type] as ((node: AST.INode, ...args: any[]) => string) | undefined;
         if (typeof visitor !== 'undefined') {
-            return visitor(node);
+            return visitor.call(this, node);
         } else {
             return node.accept(this);
         }
