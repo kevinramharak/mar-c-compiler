@@ -709,8 +709,8 @@ define("Generator/StackFrame", ["require", "exports", "Error/index"], function (
             if (this.dict.has(key)) {
                 throw new Error_3.CompilerError(`Variable already declared: '${key}'`);
             }
-            this.dict.set(key, this.index);
-            return this.index++;
+            this.dict.set(key, ++this.index);
+            return this.index;
         }
         exists(key) {
             return this.dict.has(key);
@@ -773,13 +773,13 @@ ${node.name}:
         visitVariableReference(node) {
             const offset = this.stackFrame.get(node.name);
             this.text += `\
-  PUSH [BP + ${offset}] ; '${node.name}'
+  PUSH [BP - ${offset}] ; '${node.name}'
 `;
         }
         visitAssignment(node) {
             const offset = this.stackFrame.get(node.name);
             this.text += `\
-  POP [BP + ${offset}], A ; '${node.name}' = <expr>
+  POP [BP - ${offset}], A ; '${node.name}' = <expr>
 `;
         }
         visitBinaryOp(node) {
