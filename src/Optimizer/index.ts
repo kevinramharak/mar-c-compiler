@@ -1,7 +1,7 @@
-import optimizer from './optimizer';
+import optimize from './optimize';
 import OptimizerVisitor from './OptimizerVisitor';
 
 export {
-    optimizer,
+    optimize,
     OptimizerVisitor,
 }
