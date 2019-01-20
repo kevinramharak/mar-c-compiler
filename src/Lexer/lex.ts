@@ -52,6 +52,9 @@ export default function lex(stream: string | StringStream, filename?: string): I
             case '^':
                 tokify(TokenType.BITWISE_XOR, c);
                 continue lexing;
+            case '%':
+                tokify(TokenType.MODULO, c);
+                continue lexing;
         }
 
         // multiple letter punctuation

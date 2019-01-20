@@ -1070,6 +1070,9 @@ define("Lexer/lex", ["require", "exports", "Lexer/is", "FileInfo/index", "String
                 case '^':
                     tokify(Token_5.TokenType.BITWISE_XOR, c);
                     continue lexing;
+                case '%':
+                    tokify(Token_5.TokenType.MODULO, c);
+                    continue lexing;
             }
             // multiple letter punctuation
             switch (c) {
