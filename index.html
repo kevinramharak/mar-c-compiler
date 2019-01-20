@@ -104,7 +104,7 @@ $identifier $identifier() {
                 'Error/index',
             ], function(Lexer, Parser, Generator, Optimizer, Options, Error) {
                 const $ = document.querySelector.bind(document);
-                const options = Object.assigN(Options.defaultOptions, {
+                const options = Object.assign(Options.defaultOptions, {
                     optimize: true
                 });
                 const compile = window.compile = (input) => {
