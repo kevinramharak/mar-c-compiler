@@ -13,6 +13,15 @@ export default class OptimizerVisitor extends Visitor {
         }
     }
 
+    public visitBinaryOp(node: BinaryOp) {
+        if (node.left instanceof BinaryOp) {
+            node.left = this.evaluateBinaryOp(node.left);
+        }
+        if (node.right instanceof BinaryOp) {
+            node.right = this.evaluateBinaryOp(node.right);
+        }
+    }
+
     public evaluateBinaryOp(node: BinaryOp): Expression {
         if ((node.left instanceof IntegerConstant) && (node.right instanceof IntegerConstant)) {
             switch (node.operator.type) {
