@@ -40,6 +40,7 @@ describe('Lexer', () => {
             '!': TokenType.LOGICAL_NOT,
             '*': TokenType.MULTIPLICATION,
             '/': TokenType.DIVISION,
+            '\u{2020}': TokenType.UNKOWN,
         }
         for (const input in map) {
             const token = lex(input)[0];
