@@ -4,10 +4,12 @@ import { Visitor } from '../Visitor';
 
 
 import ILabel from './ILabel';
+import StackFrame from './StackFrame';
 
 export default class CodeGenVisitor extends Visitor<string> {
     private labelId = 0;
     private text = '';
+    private stackFrame = new StackFrame();
 
     constructor() {
         super()
@@ -31,13 +33,37 @@ export default class CodeGenVisitor extends Visitor<string> {
     public visitFunctionDeclaration(node: AST.FunctionDeclaration) {
         this.text += `\
 ${node.name}:
+  PUSH BP
+  MOV BP, SP
 `;
     }
 
     public visitReturnStatement(node: AST.ReturnStatement) {
         this.text += `\
   POP A
+  MOV SP, BP
+  POP BP
   ret
+`;
+    }
+
+    public visitDeclaration(node: AST.Declaration) {
+        this.stackFrame.set(node.name);
+        if (node.expression) {
+            this.text += `\
+; var '${node.name}' = <exp>
+`
+        } else {
+            this.text += `\
+  PUSH 0 ; var '${node.name}'
+`;
+        }
+    }
+
+    public visitVariableReference(node: AST.VariableReference) {
+        const offset = this.stackFrame.get(node.name);
+        this.text += `\
+  MOV A, [BP + ${offset}] ; '${node.name}'
 `;
     }
 

@@ -1,9 +1,8 @@
-import { ReturnStatement, Statement } from '../AST';
+import { ReturnStatement, Statement, Declaration } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
 import parseExpression from './parseExpression';
-import Declaration from '../AST/Declaration';
 
 export default function parseStatement(
     stream: TokenStream

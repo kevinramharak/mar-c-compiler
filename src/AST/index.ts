@@ -5,6 +5,7 @@ import Program from './Program';
 import FunctionDeclaration from './FunctionDeclaration';
 
 import Statement from './Statement';
+import Declaration from './Declaration';
 import ReturnStatement from './ReturnStatement';
 
 import Expression from './Expression';
@@ -25,6 +26,7 @@ export {
     FunctionDeclaration,
     
     Statement,
+    Declaration,
     ReturnStatement,
     
     Expression,
