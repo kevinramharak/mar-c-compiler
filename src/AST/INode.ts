@@ -5,7 +5,7 @@ import { IVisitor } from "../Generator";
 export default interface INode {
     token?: IToken;
     stream?: TokenStream;
-    accept<T>(visitor: IVisitor<T>): T; 
+    accept(visitor: IVisitor): void; 
     friendlyError(message: string): string;
     [Symbol.toStringTag]: string;
 }

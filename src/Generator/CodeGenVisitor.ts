@@ -6,19 +6,14 @@ import Visitor from './Visitor';
 
 export default class CodeGenVisitor extends Visitor<string> {
     private labelId = 0;
+    private text = '';
 
     constructor() {
         super()
     }
 
-    public visit(node: AST.INode): string {
-        const type = Object.prototype.toString.call(node).slice(8, -1);
-        const visitor = (this as any)['visit' + type] as ((node: AST.INode, ...args: any[]) => string) | undefined;
-        if (typeof visitor !== 'undefined') {
-            return visitor.call(this, node);
-        } else {
-            return node.accept(this);
-        }
+    public get result(): string {
+        return this.text;
     }
 
     public generateLabel(extra: string = ''): ILabel {
@@ -32,28 +27,24 @@ export default class CodeGenVisitor extends Visitor<string> {
         }
     }
 
-    public visitProgram(node: AST.Program): string {
-        return this.visit(node.declaration);
-    }
-
-    public visitFunctionDeclaration(node: AST.FunctionDeclaration): string {
-        return `\
+    public visitFunctionDeclaration(node: AST.FunctionDeclaration) {
+        this.text += `\
 ${node.name}:
-` + this.visit(node.statement);
+`;
     }
 
     // no ret but brk if function is main, or some custom exit function to wrap the brk instruction
-    public visitReturnStatement(node: AST.ReturnStatement): string {
-        return this.visit(node.expression) + `\
+    public visitReturnStatement(node: AST.ReturnStatement) {
+        this.text += `\
   ret
 `;
     }
 
-    public visitBinaryOp(node: AST.BinaryOp): string {
-        let asm = this.visit(node.right);
-        asm += '  PUSH A\n';
-        asm += this.visit(node.left);
-        asm += '  POP B\n';
+    public visitBinaryOp(node: AST.BinaryOp) {
+        let asm = `\
+  POP A
+  POP B
+`;
         switch (node.operator.type) {
             case TokenType.MULTIPLICATION:
                 asm += '  MUL B'
@@ -188,11 +179,14 @@ ${endLabel}:
                 break;
             }
         }
-        return asm;
+        asm += '  PUSH A\n'
+        this.text += asm;
     }
 
-    public visitUnaryOp(node: AST.UnaryOp): string {
-        let asm = this.visit(node.expression);
+    public visitUnaryOp(node: AST.UnaryOp) {
+        let asm = `\
+  POP A
+`
         switch (node.operator.type) {
             case TokenType.LOGICAL_NOT: {
                 const label = this.generateLabel('logical_not');
@@ -206,6 +200,7 @@ ${endLabel}:
 ${trueLabel}:
   MOV A, 1
 ${endLabel}:
+  PUSH A
 `;
                 break;
             }
@@ -220,16 +215,13 @@ ${endLabel}:
 `;
                 break;
         }
-        return asm;
+        asm += ' PUSH A\n';
+        this.text += asm;
     }
 
-    public visitConstant(node: AST.Constant): string {
-        return this.visitIntegerConstant(node);
-    }
-
-    public visitIntegerConstant(node: AST.IntegerConstant): string {
-        return `\
-  MOV A, ${node.value}
+    public visitIntegerConstant(node: AST.IntegerConstant) {
+        this.text += `\
+  PUSH ${node.value}
 `;
     }
 }

@@ -24,7 +24,7 @@ export default class Node implements INode {
         return this.stream.friendlyError(this.token, message);
     }
 
-    public accept<T>(visitor: IVisitor<T>): T {
+    public accept(visitor: IVisitor) {
         return visitor.visit(this);
     }
 }
