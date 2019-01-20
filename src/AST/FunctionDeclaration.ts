@@ -11,8 +11,8 @@ export default class FunctionDeclaration extends Node {
     }
     
     public accept(visitor: IVisitor) {
-        this.statement.accept(visitor);
         visitor.visit(this);
+        this.statement.accept(visitor);
     }
 
     public get [Symbol.toStringTag](): string {
