@@ -33,7 +33,7 @@ export default class CodeGenVisitor extends Visitor<string> {
     }
 
     public visitProgram(node: AST.Program): string {
-        return this.visit(node.declaration) as string;
+        return this.visit(node.declaration);
     }
 
     public visitFunctionDeclaration(node: AST.FunctionDeclaration): string {
@@ -52,7 +52,7 @@ ${node.name}:
     public visitBinaryOp(node: AST.BinaryOp): string {
         let asm = this.visit(node.right);
         asm += '  PUSH A\n';
-        asm += this.visit(node.left) as string;
+        asm += this.visit(node.left);
         asm += '  POP B\n';
         switch (node.operator.type) {
             case TokenType.MULTIPLICATION:
@@ -188,11 +188,11 @@ ${endLabel}:
                 break;
             }
         }
-        return asm as string;
+        return asm;
     }
 
     public visitUnaryOp(node: AST.UnaryOp): string {
-        let asm = this.visit(node.expression) as string;
+        let asm = this.visit(node.expression);
         switch (node.operator.type) {
             case TokenType.LOGICAL_NOT: {
                 const label = this.generateLabel('logical_not');
