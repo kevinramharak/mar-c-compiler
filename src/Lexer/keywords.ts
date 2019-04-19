@@ -1,6 +1,8 @@
 const keywords = [
     'int',
-    'return'
+    'return',
+    'if',
+    'else',
 ];
 
 export default keywords;
