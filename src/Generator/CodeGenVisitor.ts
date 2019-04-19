@@ -130,7 +130,7 @@ ${endLabel}:
 `;
                 break;
             }
-            case TokenType.EQUALITY: {
+            case TokenType.EQUALS: {
                 const label = this.generateLabel('equals');
                 const trueLabel = label.annotate('true');
                 const endLabel = label.annotate('end');

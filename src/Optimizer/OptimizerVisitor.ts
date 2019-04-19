@@ -91,7 +91,7 @@ export default class OptimizerVisitor extends Visitor<INode> {
                     return new IntegerConstant(value);
                 }
 
-                case TokenType.EQUALITY: {
+                case TokenType.EQUALS: {
                     const value = (node.left as IntegerConstant).value === (node.right as IntegerConstant).value ? 1 : 0;
                     return new IntegerConstant(value);
                 }
