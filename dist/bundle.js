@@ -840,7 +840,7 @@ ${endLabel}:
 `;
                     break;
                 }
-                case Token_4.TokenType.EQUALITY: {
+                case Token_4.TokenType.EQUALS: {
                     const label = this.generateLabel('equals');
                     const trueLabel = label.annotate('true');
                     const endLabel = label.annotate('end');
@@ -1303,7 +1303,7 @@ define("Optimizer/OptimizerVisitor", ["require", "exports", "AST/index", "Token/
                         const value = node.left.value % node.right.value;
                         return new AST_1.IntegerConstant(value);
                     }
-                    case Token_6.TokenType.EQUALITY: {
+                    case Token_6.TokenType.EQUALS: {
                         const value = node.left.value === node.right.value ? 1 : 0;
                         return new AST_1.IntegerConstant(value);
                     }
