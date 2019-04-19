@@ -131,7 +131,7 @@ ${endLabel}:
                 break;
             }
             case TokenType.EQUALITY: {
-                const label = this.generateLabel('not_equals');
+                const label = this.generateLabel('equals');
                 const trueLabel = label.annotate('true');
                 const endLabel = label.annotate('end');
                 asm += `\
