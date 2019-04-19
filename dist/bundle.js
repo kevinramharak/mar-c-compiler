@@ -14,29 +14,31 @@ define("Token/TokenType", ["require", "exports"], function (require, exports) {
         TokenType[TokenType["LEFT_PAREN"] = bit(3)] = "LEFT_PAREN";
         TokenType[TokenType["RIGHT_PAREN"] = bit(4)] = "RIGHT_PAREN";
         TokenType[TokenType["SEMI_COLON"] = bit(5)] = "SEMI_COLON";
-        TokenType[TokenType["NEGATION"] = bit(6)] = "NEGATION";
-        TokenType[TokenType["ADDITION"] = bit(7)] = "ADDITION";
-        TokenType[TokenType["MULTIPLICATION"] = bit(8)] = "MULTIPLICATION";
-        TokenType[TokenType["DIVISION"] = bit(9)] = "DIVISION";
-        TokenType[TokenType["MODULO"] = bit(10)] = "MODULO";
-        TokenType[TokenType["BITWISE_NOT"] = bit(11)] = "BITWISE_NOT";
-        TokenType[TokenType["BITWISE_OR"] = bit(12)] = "BITWISE_OR";
-        TokenType[TokenType["BITWISE_AND"] = bit(13)] = "BITWISE_AND";
-        TokenType[TokenType["BITWISE_XOR"] = bit(14)] = "BITWISE_XOR";
-        TokenType[TokenType["LOGICAL_NOT"] = bit(15)] = "LOGICAL_NOT";
-        TokenType[TokenType["LOGICAL_AND"] = bit(16)] = "LOGICAL_AND";
-        TokenType[TokenType["LOGICAL_OR"] = bit(17)] = "LOGICAL_OR";
-        TokenType[TokenType["ASSIGN"] = bit(18)] = "ASSIGN";
-        TokenType[TokenType["EQUALS"] = bit(19)] = "EQUALS";
-        TokenType[TokenType["NOT_EQUALS"] = bit(20)] = "NOT_EQUALS";
-        TokenType[TokenType["LESS_THAN"] = bit(21)] = "LESS_THAN";
-        TokenType[TokenType["LESS_OR_EQUALS"] = bit(22)] = "LESS_OR_EQUALS";
-        TokenType[TokenType["GREATER_THAN"] = bit(23)] = "GREATER_THAN";
-        TokenType[TokenType["GREATER_OR_EQUALS"] = bit(24)] = "GREATER_OR_EQUALS";
-        TokenType[TokenType["KEYWORD"] = bit(25)] = "KEYWORD";
-        TokenType[TokenType["IDENTIFIER"] = bit(26)] = "IDENTIFIER";
-        TokenType[TokenType["INTEGER_LITERAL"] = bit(27)] = "INTEGER_LITERAL";
-        TokenType[TokenType["FLOAT_LITERAL"] = bit(28)] = "FLOAT_LITERAL";
+        TokenType[TokenType["COLON"] = bit(6)] = "COLON";
+        TokenType[TokenType["QUESTION_MARK"] = bit(7)] = "QUESTION_MARK";
+        TokenType[TokenType["NEGATION"] = bit(8)] = "NEGATION";
+        TokenType[TokenType["ADDITION"] = bit(9)] = "ADDITION";
+        TokenType[TokenType["MULTIPLICATION"] = bit(10)] = "MULTIPLICATION";
+        TokenType[TokenType["DIVISION"] = bit(11)] = "DIVISION";
+        TokenType[TokenType["MODULO"] = bit(12)] = "MODULO";
+        TokenType[TokenType["BITWISE_NOT"] = bit(13)] = "BITWISE_NOT";
+        TokenType[TokenType["BITWISE_OR"] = bit(14)] = "BITWISE_OR";
+        TokenType[TokenType["BITWISE_AND"] = bit(15)] = "BITWISE_AND";
+        TokenType[TokenType["BITWISE_XOR"] = bit(16)] = "BITWISE_XOR";
+        TokenType[TokenType["LOGICAL_NOT"] = bit(17)] = "LOGICAL_NOT";
+        TokenType[TokenType["LOGICAL_AND"] = bit(18)] = "LOGICAL_AND";
+        TokenType[TokenType["LOGICAL_OR"] = bit(19)] = "LOGICAL_OR";
+        TokenType[TokenType["ASSIGN"] = bit(20)] = "ASSIGN";
+        TokenType[TokenType["EQUALS"] = bit(21)] = "EQUALS";
+        TokenType[TokenType["NOT_EQUALS"] = bit(22)] = "NOT_EQUALS";
+        TokenType[TokenType["LESS_THAN"] = bit(23)] = "LESS_THAN";
+        TokenType[TokenType["LESS_OR_EQUALS"] = bit(24)] = "LESS_OR_EQUALS";
+        TokenType[TokenType["GREATER_THAN"] = bit(25)] = "GREATER_THAN";
+        TokenType[TokenType["GREATER_OR_EQUALS"] = bit(26)] = "GREATER_OR_EQUALS";
+        TokenType[TokenType["KEYWORD"] = bit(27)] = "KEYWORD";
+        TokenType[TokenType["IDENTIFIER"] = bit(28)] = "IDENTIFIER";
+        TokenType[TokenType["INTEGER_LITERAL"] = bit(29)] = "INTEGER_LITERAL";
+        TokenType[TokenType["FLOAT_LITERAL"] = bit(30)] = "FLOAT_LITERAL";
         // helper types - represents multiple types
         TokenType[TokenType["UNARY_OP"] = TokenType.BITWISE_NOT | TokenType.NEGATION | TokenType.LOGICAL_NOT] = "UNARY_OP";
         TokenType[TokenType["ADDITIVE"] = TokenType.NEGATION | TokenType.ADDITION] = "ADDITIVE";
@@ -839,7 +841,7 @@ ${endLabel}:
                     break;
                 }
                 case Token_4.TokenType.EQUALITY: {
-                    const label = this.generateLabel('not_equals');
+                    const label = this.generateLabel('equals');
                     const trueLabel = label.annotate('true');
                     const endLabel = label.annotate('end');
                     asm += `\
@@ -1011,7 +1013,9 @@ define("Lexer/keywords", ["require", "exports"], function (require, exports) {
     Object.defineProperty(exports, "__esModule", { value: true });
     const keywords = [
         'int',
-        'return'
+        'return',
+        'if',
+        'else',
     ];
     exports.default = keywords;
 });
@@ -1079,6 +1083,12 @@ define("Lexer/lex", ["require", "exports", "Lexer/is", "FileInfo/index", "String
                     continue lexing;
                 case '%':
                     tokify(Token_5.TokenType.MODULO, c);
+                    continue lexing;
+                case ':':
+                    tokify(Token_5.TokenType.COLON, c);
+                    continue lexing;
+                case '?':
+                    tokify(Token_5.TokenType.QUESTION_MARK, c);
                     continue lexing;
             }
             // multiple letter punctuation
@@ -1287,6 +1297,18 @@ define("Optimizer/OptimizerVisitor", ["require", "exports", "AST/index", "Token/
                     // IR would be way better for this
                     case Token_6.TokenType.DIVISION: {
                         const value = Math.floor(node.left.value / node.right.value);
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.MODULO: {
+                        const value = node.left.value % node.right.value;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.EQUALITY: {
+                        const value = node.left.value === node.right.value ? 1 : 0;
+                        return new AST_1.IntegerConstant(value);
+                    }
+                    case Token_6.TokenType.NOT_EQUALS: {
+                        const value = node.left.value !== node.right.value ? 1 : 0;
                         return new AST_1.IntegerConstant(value);
                     }
                 }

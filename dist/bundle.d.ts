@@ -7,6 +7,8 @@ declare module "Token/TokenType" {
         LEFT_PAREN,
         RIGHT_PAREN,
         SEMI_COLON,
+        COLON,
+        QUESTION_MARK,
         NEGATION,
         ADDITION,
         MULTIPLICATION,
