@@ -55,6 +55,12 @@ export default function lex(stream: string | StringStream, filename?: string): I
             case '%':
                 tokify(TokenType.MODULO, c);
                 continue lexing;
+            case ':':
+                tokify(TokenType.COLON, c);
+                continue lexing;
+            case '?':
+                tokify(TokenType.QUESTION_MARK, c);
+                continue lexing;
         }
 
         // multiple letter punctuation
