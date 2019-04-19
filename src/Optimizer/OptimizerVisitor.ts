@@ -86,6 +86,19 @@ export default class OptimizerVisitor extends Visitor<INode> {
                     const value = Math.floor((node.left as IntegerConstant).value / (node.right as IntegerConstant).value);
                     return new IntegerConstant(value);
                 }
+                case TokenType.MODULO: {
+                    const value = (node.left as IntegerConstant).value % (node.right as IntegerConstant).value;
+                    return new IntegerConstant(value);
+                }
+
+                case TokenType.EQUALITY: {
+                    const value = (node.left as IntegerConstant).value === (node.right as IntegerConstant).value ? 1 : 0;
+                    return new IntegerConstant(value);
+                }
+                case TokenType.NOT_EQUALS: {
+                    const value = (node.left as IntegerConstant).value !== (node.right as IntegerConstant).value ? 1 : 0;
+                    return new IntegerConstant(value);
+                }
             }
         }
         return node;
