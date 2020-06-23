@@ -3,9 +3,12 @@ import { TokenType } from '../Token';
 import { Visitor } from '../Visitor';
 
 export default class OptimizerVisitor extends Visitor<INode> {
-    private ast: INode = new Node();
+    private ast?: INode;
 
     public get result(): INode {
+        if (!this.ast) {
+            throw new TypeError(`'this.ast' is undefined`);
+        }
         return this.ast;
     }
 
@@ -29,6 +32,7 @@ export default class OptimizerVisitor extends Visitor<INode> {
                 (node as any)[prop] = this.evaluateUnaryOp(ref);
             }
         }
+        this.ast = node;
         super.visit(node);
     }
 

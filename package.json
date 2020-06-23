@@ -9,7 +9,7 @@
         "build": "tsc",
         "test-all": "mocha test && mocha samples",
         "test": "mocha --recursive ./test/Compiler/*.spec.ts",
-        "samples": "mocha --recursive ./test/Stages/*.spec.ts",
+        "samples": "mocha --recursive ./test/Stages/stage_1.spec.ts",
         "prerun": "npm run build",
         "watch": "tsc --watch"
     },
@@ -34,8 +34,5 @@
     },
     "pre-commit": [
         "test"
-    ],
-    "dependencies": {
-        "eventemitter3": "^3.1.0"
-    }
+    ]
 }

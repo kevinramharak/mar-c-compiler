@@ -46,11 +46,8 @@ export default class TokenStream {
         const token = this.peek();
         if (token.type & type) {
             return this.next();
-        } else {
-            this.panic(token, (message) ? message : type);
         }
-        // to keep the typescript compiler happy
-        return token;
+        return this.panic(token, (message) ? message : type);
     }
 
     /**

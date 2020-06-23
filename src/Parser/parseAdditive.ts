@@ -1,4 +1,4 @@
-import { BinaryOp, Expression } from '../AST';
+import { Expression, BinaryOp } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 

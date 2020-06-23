@@ -1,5 +1,5 @@
 import { ReturnStatement, Statement, Declaration } from '../AST';
-import { TokenType } from '../Token';
+import { TokenType, Token } from '../Token';
 import { TokenStream } from '../TokenStream';
 
 import parseExpression from './parseExpression';
@@ -7,7 +7,8 @@ import parseExpression from './parseExpression';
 export default function parseStatement(
     stream: TokenStream
 ): Statement {
-    let statement;
+    // create a phony statement to keep the compiler happy
+    let statement: Statement = new Statement({ token: new Token(TokenType.UNKOWN, '[phony]') });
     const peek = stream.peek();
     if (peek.type === TokenType.KEYWORD) {
         if (peek.lexeme === 'int') {
@@ -31,5 +32,5 @@ export default function parseStatement(
         statement = parseExpression(stream);
     }
     stream.expect(TokenType.SEMI_COLON);
-    return statement as Statement;
+    return statement;
 };

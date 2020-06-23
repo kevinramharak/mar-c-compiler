@@ -6,7 +6,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import Node from './Node';
 
 export default class Program extends Node {
-    constructor(public  declaration: FunctionDeclaration, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
+    constructor(public declaration: FunctionDeclaration, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         super(info);
     }
 
