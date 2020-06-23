@@ -9,7 +9,7 @@ import { optimize } from './Optimizer';
 
 import fs from 'fs';
 
-export default function pipeline(filename: string, options: IOptions, output?: string) {
+export default function pipeline(filename: string, options: IOptions = { optimize: false }, output?: string) {
     try {
         const content = fs.readFileSync(filename, { encoding: 'utf8' });
         const tokens = lex(content, filename);
@@ -34,8 +34,8 @@ export default function pipeline(filename: string, options: IOptions, output?: s
     } catch (error) {
         if (error instanceof CompilerError) {
             return {
-                error: (error as Error)
-            }
+                error
+            };
         } else {
             throw error;
         }

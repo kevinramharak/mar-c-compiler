@@ -5,7 +5,7 @@ import { IVisitor } from '../Visitor';
 import Expression from './Expression';
 
 export default class BinaryOp extends Expression {
-    constructor(public  operator: IToken, public  left: Expression, public  right: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
+    constructor(public operator: IToken, public left: Expression, public right: Expression, info: Partial<{ token: IToken, stream: TokenStream }> = {}) {
         super(info);
     }
 

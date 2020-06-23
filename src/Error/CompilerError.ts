@@ -1,6 +1,2 @@
 
-export default class CompilerError extends Error {
-    constructor(message?: string) {
-        super(message);
-    }
-}
+export default class CompilerError extends Error {}

@@ -21,7 +21,7 @@ export function main(...args: string[]): number {
         console.log('-- content -- ')
         console.log(result.content);
         console.log('-------------');
-/*
+        
         console.log(' -- tokens --');
         console.log(result.tokens);
         console.log('------------');
@@ -29,7 +29,7 @@ export function main(...args: string[]): number {
         console.log('-- ast --')
         console.log(result.ast);
         console.log('---------');
-*/
+
         console.log('-- asm --')
         console.log(result.asm);
         console.log('---------');

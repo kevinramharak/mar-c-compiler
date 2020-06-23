@@ -1,18 +1,16 @@
-import mocha from 'mocha';
-import assert from 'assert';
-
-import { lex } from '../../src/Lexer';
+import { strict as assert } from 'assert';
+import { lex, keywords } from '../../src/Lexer';
 import { TokenType } from '../../src/Token';
-import { keywords } from '../../src/Lexer';
 
 describe('Lexer', () => {
     it('should take a string as input and return an array as output', () => {
         const input = "";
         const output = lex(input);
-        assert(Array.isArray(output));
+        assert(Array.isArray(output), `expected 'output' to be an array`);
     });
-    it('should return the correct tokens for each example input', () => {
-        const map: { [input: string]: TokenType } = {
+    it('should return the correct tokens for each input', () => {
+        type InputToTokenMap = { [input: string]: TokenType };
+        const map: InputToTokenMap = {
             '1': TokenType.INTEGER_LITERAL,
             '01': TokenType.INTEGER_LITERAL,
             '0x1': TokenType.INTEGER_LITERAL,
@@ -41,16 +39,17 @@ describe('Lexer', () => {
             '*': TokenType.MULTIPLICATION,
             '/': TokenType.DIVISION,
             '\u{2020}': TokenType.UNKOWN,
-        }
-        for (const input in map) {
-            const token = lex(input)[0];
-            assert(token, `failed to parse '${input}'`);
-            assert(token.type === map[input], `parsed '${input}' into type '${TokenType[token.type]}', expected '${TokenType[map[input]]}'`);
-        }
-        for (const keyword of keywords) {
-            const token = lex(keyword)[0];
-            assert(token, `failed to parse keyword: '${keyword}'`);
-            assert(token.type === TokenType.KEYWORD, `parsed '${keyword}' into type '${TokenType[token.type]}', expected '${TokenType[TokenType.KEYWORD]}'`);
-        }
+        };
+
+        keywords.forEach(keyword => map[keyword] = TokenType.KEYWORD);
+
+        const output: InputToTokenMap = {};
+        Object.entries(map).reduce((map, [input, _]) => {
+            const tokens = lex(input);
+            assert.equal(tokens.length, 1, `expected length of 'lex("${input}")' to be 1`);
+            map[input] = tokens[0].type;
+            return map;
+        }, output);
+        assert.deepEqual(map, output, `expected each token to map to the correct 'TokenType'`);
     });
 });

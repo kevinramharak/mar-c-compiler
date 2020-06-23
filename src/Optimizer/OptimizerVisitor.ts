@@ -3,7 +3,7 @@ import { TokenType } from '../Token';
 import { Visitor } from '../Visitor';
 
 export default class OptimizerVisitor extends Visitor<INode> {
-    private ast: INode = new Node;
+    private ast: INode = new Node();
 
     public get result(): INode {
         return this.ast;
@@ -14,6 +14,9 @@ export default class OptimizerVisitor extends Visitor<INode> {
     }
 
     public visit(node: INode) {
+        // This is a real dirty way of replacing AST nodes with evaluated nodes
+        // proper way would be building a new ast
+        // tslint:disable-next-line: forin
         for (const prop in node) {
             const ref = (node as any)[prop];
             if (!(ref instanceof Node)) {
