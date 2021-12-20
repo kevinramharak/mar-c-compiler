@@ -10,6 +10,10 @@ export default function parseFunctionDeclaration(
     const type = stream.expect(TokenType.KEYWORD | TokenType.IDENTIFIER);
     const identifier = stream.expect(TokenType.IDENTIFIER);
     stream.expect(TokenType.LEFT_PAREN);
+    // ignore argument list
+    while (!stream.eof && stream.peek().type !== TokenType.RIGHT_PAREN) {
+        stream.next();
+    }
     stream.expect(TokenType.RIGHT_PAREN);
     stream.expect(TokenType.LEFT_BRACE);
 

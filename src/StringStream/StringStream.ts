@@ -1,9 +1,9 @@
 import EventEmitter from 'eventemitter3';
-import EOFError from './EOFError';
+import { EOFError, IndexOutOfBoundsError }  from '../Error';
 
 export default class StringStream {
-    private get index(): number {
-        return this._index;
+    private get cursor(): number {
+        return this._cursor;
     }
 
     /**
@@ -12,45 +12,42 @@ export default class StringStream {
      * @private
      * @memberof StringStream
      */
-    private set index(value: number) {
-        this._index = value;
-        if (this._index > this.input.length) {
-            this.emitter.emit('indexOverflow');
-            this._index = this.input.length;
+    private set cursor(value: number) {
+        if (value < 0 || value > this.input.length) {
+            throw new IndexOutOfBoundsError();
         }
+        this._cursor = value;
     }
 
     /**
      * Represents end of stream flag
      */
     public get eof(): boolean {
-        return this.index === this.input.length;
+        return this.cursor === this.input.length;
     }
     
-    public readonly emitter = new EventEmitter();
-
-    private _index = 0;
+    /**
+     * internal cursor
+     */
+    private _cursor = 0;
 
     /**
      * 
-     * @param input Input string to provide stream like interface for
+     * @param input Input string to wrap the stream
      */
-    constructor(public readonly input: string) {
-        
-    }
+    constructor(public readonly input: string) {}
 
     /**
      * Peek `length` amount of characters and return them as a string
      * @throws {EOFError}
      * @param length
-     * @param [noThrow] suppress EOFError
+     * @param noThrow suppress EOFError
      */
     public peek(length: number = 1, noThrow: boolean = false): string {
         if (!noThrow) {
             this.checkEOFError(length);
         }
-        const substr = this.input.substr(this.index, length);
-        this.emitter.emit('peek', substr);
+        const substr = this.input.substr(this.cursor, length);
         return substr;
     }
 
@@ -63,9 +60,8 @@ export default class StringStream {
         if (!noThrow) {
             this.checkEOFError(length);
         }
-        const substr = this.input.substr(this.index, length);
-        this.index += length;
-        this.emitter.emit('next', substr);
+        const substr = this.input.substr(this.cursor, length);
+        this.cursor += length;
         return substr;
     }
 
@@ -91,9 +87,8 @@ export default class StringStream {
      * @param length 
      */
     private checkEOFError(length: number) {
-        if (this.index + length > this.input.length) {
+        if (this.cursor + length > this.input.length) {
             const error = new EOFError(`#StringStream.next(${length}) - exceeded end of file`);
-            this.emitter.emit('EOFError', error);
             throw error;
         }
     }

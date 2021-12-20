@@ -1,7 +1,7 @@
 import { CompilerError } from "../Error";
 
 export default class StackFrame {
-    private index = 0;
+    private offset = 0;
     private dict = new Map<string, number>();
 
     constructor() {
@@ -19,8 +19,8 @@ export default class StackFrame {
         if (this.dict.has(key)) {
             throw new CompilerError(`Variable already declared: '${key}'`)
         }
-        this.dict.set(key, ++this.index);
-        return this.index;
+        this.dict.set(key, ++this.offset);
+        return this.offset;
     }
 
     public exists(key: string): boolean {

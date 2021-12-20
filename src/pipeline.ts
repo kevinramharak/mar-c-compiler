@@ -8,12 +8,24 @@ import { parse } from './Parser';
 import { optimize } from './Optimizer';
 
 import fs from 'fs';
+import { INode } from './AST';
+import { IToken } from './Token';
 
-export default function pipeline(filename: string, options: IOptions, output?: string) {
+export interface IPipelineOutput {
+    content: string;
+    tokens: IToken[];
+    ast: INode;
+    asm: string;
+    error?: CompilerError;
+}
+
+export default function pipeline(filename: string, options: IOptions = { optimize: false }, output?: string): Partial<IPipelineOutput> {
     try {
         const content = fs.readFileSync(filename, { encoding: 'utf8' });
         const tokens = lex(content, filename);
         let ast = parse(tokens);
+
+        fs.writeFileSync('dump.json', JSON.stringify(ast, null, 2), { encoding: 'utf8' });
 
         if (options.optimize) {
             ast = optimize(ast);
@@ -34,8 +46,8 @@ export default function pipeline(filename: string, options: IOptions, output?: s
     } catch (error) {
         if (error instanceof CompilerError) {
             return {
-                error: (error as Error)
-            }
+                error
+            };
         } else {
             throw error;
         }

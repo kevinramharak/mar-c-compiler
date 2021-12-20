@@ -11,6 +11,7 @@
             "allow-trailing_underscores",
             "ban-keywords"
         ],
+        "no-shadowed-variable": false,
         "no-implicit-dependencies": false,
         "interface-name": false,
         "adjacent-overload-signatures": true,
@@ -19,6 +20,7 @@
         "no-bitwise": false,
         "no-console": false,
         "no-empty": false,
+        "radix": false,
         "no-empty-interface": false,
         "object-literal-sort-keys": false
     },

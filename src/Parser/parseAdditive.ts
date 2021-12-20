@@ -1,4 +1,4 @@
-import { BinaryOp, Expression } from '../AST';
+import { Expression, BinaryOp } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
@@ -11,7 +11,7 @@ export default function parseAdditive(
     while (stream.peek().type & TokenType.ADDITIVE) {
         const operator = stream.next();
         const right = parseTerm(stream);
-        expression = new BinaryOp(operator, expression, right);
+        expression = new BinaryOp(operator, expression, right, { token: expression.token, stream });
     }
     return expression;
 };

@@ -3,9 +3,12 @@ import { TokenType } from '../Token';
 import { Visitor } from '../Visitor';
 
 export default class OptimizerVisitor extends Visitor<INode> {
-    private ast: INode = new Node;
+    private ast?: INode;
 
     public get result(): INode {
+        if (!this.ast) {
+            throw new TypeError(`'this.ast' is undefined`);
+        }
         return this.ast;
     }
 
@@ -14,6 +17,9 @@ export default class OptimizerVisitor extends Visitor<INode> {
     }
 
     public visit(node: INode) {
+        // This is a real dirty way of replacing AST nodes with evaluated nodes
+        // proper way would be building a new ast
+        // tslint:disable-next-line: forin
         for (const prop in node) {
             const ref = (node as any)[prop];
             if (!(ref instanceof Node)) {
@@ -26,6 +32,7 @@ export default class OptimizerVisitor extends Visitor<INode> {
                 (node as any)[prop] = this.evaluateUnaryOp(ref);
             }
         }
+        this.ast = node;
         super.visit(node);
     }
 

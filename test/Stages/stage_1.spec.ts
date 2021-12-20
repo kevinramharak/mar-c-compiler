@@ -1,65 +1,31 @@
 import * as mocha from 'mocha';
 import assert from 'assert';
+import fs from 'fs';
 
 import pipeline from '../../src/pipeline';
-
-const template = (value: string) => `\
-main:
-  MOV A, ${value}
-  ret
-`;
-
-const extractReturnValue = (content: string) => {
-    return /return\W+([0-9]+)\W*;/g.exec(content);
-};
-
-const PREFIX = './samples/stage_1';
-const INVALID = `${PREFIX}/invalid`;
-const VALID = `${PREFIX}/valid`;
-
-const test = (name: string) => {
-    return () => {
-        const result = pipeline(`${name}`);
-
-        assert(!result.error);
-        assert(result.content);
-
-        const regexResult = extractReturnValue(result.content!)![1];
-
-        assert(regexResult);
-
-        const asm = template(regexResult);
-        assert(result.asm === asm, `\n${result.asm} === \n${asm}`);
-    }
-}
+import { CompilerError } from '../../src/Error';
 
 describe('Stage 1', () => {
-    const valid = [
-        'multi_digit',
-        'newlines',
-        'no_newlines',
-        'return_0',
-        'return_2',
-        'spaces',
-    ];
-    const invalid = [
-        'missing_paren',
-        'missing_retval',
-        'no_brace',
-        'no_semicolon',
-        'no_space',
-        'wrong_case',
-    ];
+    const VALID_PATH = 'samples/stage_1/valid';
+    const INVALID_PATH = 'samples/stage_1/invalid';
+    const valid = fs.readdirSync(VALID_PATH);
+    const invalid = fs.readdirSync(INVALID_PATH);
 
-    valid.forEach((name) => {
-        it(`should generate valid assembly for '${name}.c'`, test(`${VALID}/${name}.c`));
-    });
-
-    invalid.forEach((name) => {
-        it(`should throw an exception for '${name}'.c`, () => {
-            const result = pipeline(`${INVALID}/${name}.c`);
-            assert(result.error);
+    valid.forEach(name => {
+        const filepath = `${VALID_PATH}/${name}`;
+        it(`should generate valid assembly for '${name}'`, () => {
+            const result = pipeline(filepath);
+            const expected = fs.readFileSync(filepath.replace('.c', '.mar'), 'utf8')
+            assert(!result.error, 'expected no compilation errors');
+            assert.equal(result.asm, expected, `expected compilation of '${name}' to equal to contents of '${name.replace('.c', '.mar')}'`);
         });
     });
-})
 
+    invalid.forEach(name => {
+        const filepath = `${INVALID_PATH}/${name}`;
+        it(`should return a compilation error for '${name}'`, () => {
+            const result = pipeline(filepath);
+            assert(result.error instanceof CompilerError, `expected compilation of '${name}' to return a compiler error`);
+        });
+    })
+});
