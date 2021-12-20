@@ -2,7 +2,7 @@ import { BinaryOp, Expression } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
-import { parseRelational } from '.';
+import parseRelational from './parseRelational';;
 
 export default function parseEquality(
     stream: TokenStream

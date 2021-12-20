@@ -2,7 +2,7 @@ import { BinaryOp, Expression } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
-import { parseEquality } from '.';
+import parseEquality from './parseEquality';;
 
 export default function parseLogicalOr(
     stream: TokenStream

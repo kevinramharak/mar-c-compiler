@@ -4,7 +4,8 @@ import { IVisitor } from '../Visitor';
 
 import Node from './Node';
 import Statement from './Statement';
-import { ReturnStatement, IntegerConstant } from '.';
+import ReturnStatement from './ReturnStatement'
+import IntegerConstant from './IntegerConstant';
 
 export default class FunctionDeclaration extends Node {
     constructor(public type: string, public name: string, public statements: Statement[], info: Partial<{ token: IToken, stream: TokenStream }> = {}) {

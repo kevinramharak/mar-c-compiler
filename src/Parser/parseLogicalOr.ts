@@ -2,7 +2,7 @@ import { BinaryOp, Expression } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
-import { parseLogicalAnd } from '.';
+import parseLogicalAnd from './parseLogicalAnd';;
 
 export default function parseLogicalOr(
     stream: TokenStream

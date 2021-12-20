@@ -1,4 +1,3 @@
-import EventEmitter from 'eventemitter3';
 import { EOFError, IndexOutOfBoundsError }  from '../Error';
 
 export default class StringStream {

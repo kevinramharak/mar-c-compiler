@@ -1,0 +1,25 @@
+{
+  "declaration": {
+    "token": {
+      "lexeme": "int",
+      "type": "KEYWORD",
+      "file": "samples/stage_1/valid/return_2.c",
+      "line": 1,
+      "col": 1
+    },
+    "type": "int",
+    "name": "main",
+    "statements": [
+      {
+        "expression": {
+          "type": "int16_t",
+          "value": 2,
+          "NodeType": "IntegerConstant"
+        },
+        "NodeType": "ReturnStatement"
+      }
+    ],
+    "NodeType": "FunctionDeclaration"
+  },
+  "NodeType": "Program"
+}

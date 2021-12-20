@@ -3,7 +3,6 @@ import { TokenStream } from "../TokenStream";
 import { IVisitor } from '../Visitor';
 
 import INode from "./INode";
-import { inspect } from "util";
 
 export default class Node implements INode {
     public token?: IToken;
@@ -31,10 +30,6 @@ export default class Node implements INode {
 
     public accept(visitor: IVisitor) {
         return visitor.visit(this);
-    }
-
-    public [inspect.custom]() {
-        return this.toJSON();
     }
 
     public toJSON() {

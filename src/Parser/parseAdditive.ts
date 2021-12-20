@@ -2,7 +2,7 @@ import { Expression, BinaryOp } from '../AST';
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
-import { parseTerm } from '.';
+import parseTerm from './parseTerm';;
 
 export default function parseAdditive(
     stream: TokenStream

@@ -2,7 +2,7 @@ import { IntegerConstant, UnaryOp, Expression, VariableReference } from '../AST'
 import { TokenType } from '../Token';
 import { TokenStream } from '../TokenStream';
 
-import { parseExpression } from '.';
+import parseExpression from './parseExpression';
 
 export default function parseFactor(
     stream: TokenStream
@@ -12,6 +12,13 @@ export default function parseFactor(
 
     if (peek.type === TokenType.LEFT_PAREN) {
         stream.next();
+
+        // code generation has an error that is to stupid to fix
+        if ('default' in parseExpression) {
+            // @ts-ignore
+            parseExpression = parseExpression['default'];
+        }
+
         expression = parseExpression(stream);
         stream.expect(TokenType.RIGHT_PAREN);
     } else if (peek.type & TokenType.UNARY_OP) {

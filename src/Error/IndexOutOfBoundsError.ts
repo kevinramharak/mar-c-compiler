@@ -1,2 +1,3 @@
+import CompilerError from './CompilerError';
 
-export default class IndexOutOfBoundsError extends Error {}
+export default class IndexOutOfBoundsError extends CompilerError {}
