@@ -13,9 +13,9 @@ export default function parseExpression(
         // assign
         stream.next();
         const inner = parseExpression(stream);
-        expression = new Assignment(name.lexeme, inner);
+        expression = new Assignment(name.lexeme, inner, { token: name, stream });
     } else {
         expression = parseLogicalOr(stream);
     }
-    return expression as Expression;
+    return expression;
 };

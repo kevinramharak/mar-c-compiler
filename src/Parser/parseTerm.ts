@@ -11,7 +11,7 @@ export default function parseTerm(
     while (stream.peek().type & TokenType.TERM) {
         const operator = stream.next();
         const right = parseFactor(stream);
-        factor = new BinaryOp(operator, factor, right);
+        factor = new BinaryOp(operator, factor, right, { token: factor.token, stream });
     }
     return factor;
 };

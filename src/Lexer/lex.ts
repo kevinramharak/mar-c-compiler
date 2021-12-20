@@ -3,6 +3,7 @@ import is from './is';
 
 import { StringStream } from '../StringStream';
 import { IToken, Token, TokenType } from '../Token';
+import { EOFError } from '../Error';
 
 export default function lex(input: string | StringStream, filename?: string): IToken[] {
     const stream: StringStream = !(input instanceof StringStream) ? new StringStream(input) : input;
@@ -16,6 +17,7 @@ export default function lex(input: string | StringStream, filename?: string): IT
 
     // helper to keep track of 'info.col'
     const next = () => { info.col++; return stream.next()};
+    const peek = () => { try { return stream.peek(); } catch (e) { if (e instanceof EOFError) return ''; throw e; }};
 
     lexing: while(!stream.eof) {
         const createToken = (type: TokenType, lexeme: string) => tokens.push(new Token(type, lexeme, { name: info.name, line: info.line, col: info.col }));
@@ -48,6 +50,9 @@ export default function lex(input: string | StringStream, filename?: string): IT
             case ')':
                 createToken(TokenType.RIGHT_PAREN, character);
                 continue lexing;
+            case ',':
+                createToken(TokenType.COMMA, character);
+                continue lexing;
             case ';':
                 createToken(TokenType.SEMI_COLON, character);
                 continue lexing;
@@ -71,28 +76,26 @@ export default function lex(input: string | StringStream, filename?: string): IT
         // multiple letter punctuation
         switch (character) {
             case '=':
-                if (!stream.eof) {
-                    switch (stream.peek()) {
-                        case '=':
-                            createToken(TokenType.EQUALS, character + next());
-                            continue lexing;
-                    }
+                switch (peek()) {
+                    case '=':
+                        createToken(TokenType.EQUALS, character + next());
+                        continue lexing;
+                    default:
+                        createToken(TokenType.ASSIGN, character);
+                        continue lexing;
                 }
-                createToken(TokenType.ASSIGN, character);
-                continue lexing;
             case '-':
                 createToken(TokenType.NEGATION, character);
                 continue lexing;
             case '!':
-                if (!stream.eof) {
-                    switch(stream.peek()) {
-                        case '=':
-                            createToken(TokenType.NOT_EQUALS, character + next());
-                            continue lexing;
-                    }
+                switch(peek()) {
+                    case '=':
+                        createToken(TokenType.NOT_EQUALS, character + next());
+                        continue lexing;
+                    default:
+                        createToken(TokenType.LOGICAL_NOT, character);
+                        continue lexing;
                 }
-                createToken(TokenType.LOGICAL_NOT, character);
-                continue lexing;
             case '+':
                 createToken(TokenType.ADDITION, character);
                 continue lexing;
@@ -103,45 +106,41 @@ export default function lex(input: string | StringStream, filename?: string): IT
                 createToken(TokenType.DIVISION, character);
                 continue lexing;
             case '|':
-                if (!stream.eof) {
-                    switch (stream.peek()) {
-                        case '|':
-                            createToken(TokenType.LOGICAL_OR, character + next());
-                            continue lexing;
-                    }
-                }
-                createToken(TokenType.BITWISE_OR, character);
-                continue lexing;
-            case '&':
-                if (!stream.eof) {
-                    switch(stream.peek()) {
-                        case '&':
-                            createToken(TokenType.LOGICAL_AND, character + next());
-                            continue lexing;
-                    }
-                }
-                createToken(TokenType.BITWISE_AND, character);
-                continue lexing;
-            case '<':
-                if (!stream.eof) {
-                    switch(stream.peek()) {
-                        case '=':
-                            createToken(TokenType.LESS_OR_EQUALS, character + next());
-                            continue lexing;
-                    }
-                }
-                createToken(TokenType.LESS_THAN, character);
-                continue lexing;
-            case '>':
-                if (!stream.eof) {
-                    switch(stream.peek()) {
-                        case '=':
-                            createToken(TokenType.GREATER_OR_EQUALS, character + next());
+                switch (peek()) {
+                    case '|':
+                        createToken(TokenType.LOGICAL_OR, character + next());
                         continue lexing;
-                    }
+                    default:
+                        createToken(TokenType.BITWISE_OR, character);
+                        continue lexing;
                 }
-                createToken(TokenType.GREATER_THAN, character);
-                continue lexing;
+            case '&':
+                switch(peek()) {
+                    case '&':
+                        createToken(TokenType.LOGICAL_AND, character + next());
+                        continue lexing;
+                    default:
+                        createToken(TokenType.BITWISE_AND, character);
+                        continue lexing;
+                }
+            case '<':
+                switch(peek()) {
+                    case '=':
+                        createToken(TokenType.LESS_OR_EQUALS, character + next());
+                        continue lexing;
+                    default:
+                        createToken(TokenType.LESS_THAN, character);
+                        continue lexing;
+                }
+            case '>':
+                switch(peek()) {
+                    case '=':
+                        createToken(TokenType.GREATER_OR_EQUALS, character + next());
+                        continue lexing;
+                    default:
+                        createToken(TokenType.GREATER_THAN, character);
+                        continue lexing;
+                }
         }
 
         // integer literal: https://en.cppreference.com/w/c/language/integer_constant
@@ -150,24 +149,21 @@ export default function lex(input: string | StringStream, filename?: string): IT
         // base 10
         if (is.decimal(character)) {
             const integer = character + stream.while(is.digit);
-            if (!stream.eof) {
-                const peek = stream.peek();
-                if (peek === '.') {
-                    const dot = next();
-                    const float = stream.while(is.digit);
-                    createToken(TokenType.FLOAT_LITERAL, integer + dot + float);
-                    continue lexing;
-                }
-            } 
-            createToken(TokenType.INTEGER_LITERAL, integer);
+            if (peek() === '.') {
+                const dot = next();
+                const float = stream.while(is.digit);
+                createToken(TokenType.FLOAT_LITERAL, integer + dot + float);
+            } else {
+                createToken(TokenType.INTEGER_LITERAL, integer);
+            }
             continue lexing;
         }
 
         // #TODO: support float hexadecimal
         if (character === '0') {
-            const peek = (!stream.eof) ? stream.peek() : false;
+            const char = peek();
             // hexadecimal
-            if (peek && (peek === 'x' || peek === 'X')) {
+            if (char === 'x' || char === 'X') {
                 const x = next();
                 createToken(TokenType.INTEGER_LITERAL, character + x + stream.while(is.hex));
             }

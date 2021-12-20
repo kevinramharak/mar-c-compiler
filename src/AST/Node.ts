@@ -40,7 +40,7 @@ export default class Node implements INode {
     public toJSON() {
         const entries = Object.entries(this).filter(([name, value]) => name !== 'stream' && typeof value !== 'function');
         const map = entries.reduce((map, [name, value]) => { map[name] = value; return map; }, {} as any);
-        map.NodeType = this.toString().slice(8, -1);
+        map.nodeType = this.nodeType;
         return map;
     }
 }

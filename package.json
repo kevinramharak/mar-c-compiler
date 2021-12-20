@@ -11,6 +11,7 @@
         "test": "mocha --recursive ./test/Compiler/*.spec.ts",
         "samples": "mocha --recursive ./test/Stages/stage_1.spec.ts",
         "prerun": "npm run build",
+        "run": "node build/bin.js",
         "watch": "tsc --watch"
     },
     "keywords": [],

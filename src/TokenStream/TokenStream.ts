@@ -6,7 +6,7 @@ import ParseError from './ParseError';
 
 export default class TokenStream {
     private _index = 0;
-    private EOFToken: IToken;
+    readonly EOFToken: IToken;
 
     private get index() {
         return this._index;
@@ -70,9 +70,10 @@ export default class TokenStream {
         // gather all tokens up to 2 lines before the passed token
         const lines = [token.line - 2, token.line - 1, token.line].filter(line => line > 0);
         const output = lines.map((line) => {
-            return `${line}| ` + this.tokens.filter((token) => token.line === line).reduce((str, token) => {
+            return `${line}| ` + this.tokens.filter((token) => token.line === line).reduce((str, token, index, array) => {
                 const indent = (token.col - 1) - str.length;
-                return str + ' '.repeat((indent >= 0) ? indent : 0) + token.lexeme;
+                const needsSpace = index !== 0 && (array[index - 1].type === TokenType.KEYWORD || array[index - 1].type === TokenType.IDENTIFIER || array[index - 1].type === TokenType.COMMA) && (token.type === TokenType.IDENTIFIER || token.type === TokenType.KEYWORD);
+                return str + (needsSpace ? ' ' : '') + ' '.repeat((indent >= 0) ? indent : 0) + token.lexeme;
             }, '');
         })
         

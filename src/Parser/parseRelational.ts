@@ -11,7 +11,7 @@ export default function parseLogicalOr(
     while (stream.peek().type & TokenType.RELATIONAL) {
         const operator = stream.next();
         const right = parseAdditive(stream);
-        expression = new BinaryOp(operator, expression, right);
+        expression = new BinaryOp(operator, expression, right, { token: expression.token, stream });
     }
     return expression;
 };

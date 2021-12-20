@@ -10,39 +10,40 @@ enum TokenType {
     LEFT_PAREN = bit(3), // (
     RIGHT_PAREN = bit(4), // )
 
-    SEMI_COLON = bit(5), // ;
-    COLON = bit(6), // :
-    QUESTION_MARK = bit(7), // ?
+    COMMA = bit(5), // ,
+    SEMI_COLON = bit(6), // ;
+    COLON = bit(7), // :
+    QUESTION_MARK = bit(8), // ?
 
-    NEGATION = bit(8), // -
-    ADDITION = bit(9), // +
-    MULTIPLICATION = bit(10), // *
-    DIVISION = bit(11), // /
-    MODULO = bit(12), // %
+    NEGATION = bit(9), // -
+    ADDITION = bit(10), // +
+    MULTIPLICATION = bit(11), // *
+    DIVISION = bit(12), // /
+    MODULO = bit(13), // %
 
-    BITWISE_NOT = bit(13), // ~
-    BITWISE_OR = bit(14), // |
-    BITWISE_AND = bit(15), // &
-    BITWISE_XOR = bit(16), // ^
+    BITWISE_NOT = bit(14), // ~
+    BITWISE_OR = bit(15), // |
+    BITWISE_AND = bit(16), // &
+    BITWISE_XOR = bit(17), // ^
 
-    LOGICAL_NOT = bit(17), // !
-    LOGICAL_AND = bit(18), // &&
-    LOGICAL_OR = bit(19),  // ||
+    LOGICAL_NOT = bit(18), // !
+    LOGICAL_AND = bit(19), // &&
+    LOGICAL_OR = bit(20),  // ||
     
-    ASSIGN = bit(20), // =
-    EQUALS = bit(21), // ==
-    NOT_EQUALS = bit(22), // !=
+    ASSIGN = bit(21), // =
+    EQUALS = bit(22), // ==
+    NOT_EQUALS = bit(23), // !=
 
-    LESS_THAN = bit(23), // <
-    LESS_OR_EQUALS = bit(24), // <=
-    GREATER_THAN = bit(25), // >
-    GREATER_OR_EQUALS = bit(26), // >=
+    LESS_THAN = bit(24), // <
+    LESS_OR_EQUALS = bit(25), // <=
+    GREATER_THAN = bit(26), // >
+    GREATER_OR_EQUALS = bit(27), // >=
 
-    KEYWORD = bit(27),
-    IDENTIFIER = bit(28), // /[a-z_][a-z0-9_]*/i
+    KEYWORD = bit(28),
+    IDENTIFIER = bit(29), // /[a-z_][a-z0-9_]*/i
 
-    INTEGER_LITERAL = bit(29), // /[1-9][0-9]*/
-    FLOAT_LITERAL = bit(30),  // /[1-9][0-9]*[.][0-9]*/
+    INTEGER_LITERAL = bit(30), // /[1-9][0-9]*/
+    FLOAT_LITERAL = bit(31),  // /[1-9][0-9]*[.][0-9]*/
 
     // helper types - represents multiple types
     UNARY_OP = TokenType.BITWISE_NOT | TokenType.NEGATION | TokenType.LOGICAL_NOT,

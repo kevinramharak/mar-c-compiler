@@ -19,12 +19,12 @@ export default function parseStatement(
                 stream.expect(TokenType.ASSIGN);
                 expression = parseExpression(stream);
             }
-            statement = new Declaration(name.lexeme, expression);
+            statement = new Declaration(name.lexeme, expression, { token: name, stream });
         } else if (peek.lexeme === 'return') {
             // consume 'return'
             stream.next();
             const expression = parseExpression(stream);
-            statement = new ReturnStatement(expression);
+            statement = new ReturnStatement(expression, { token: peek, stream });
         } else {
             stream.panic(peek, `keyword 'int'|'return'`);
         }
